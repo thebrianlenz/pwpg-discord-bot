@@ -5,6 +5,7 @@ import json
 from datetime import datetime
 from discord.ext.commands import Bot
 from discord.ext.commands import HelpFormatter
+from discord.ext.commands import MemberConverter
 from configparser import SafeConfigParser
 
 BOT_PREFIX = ("!","$")
@@ -12,6 +13,7 @@ BOT_PREFIX = ("!","$")
 config = SafeConfigParser()
 client = Bot(command_prefix=BOT_PREFIX)
 formatter = HelpFormatter()
+memConverter = MemberConverter()
 
 config.read('config.ini')
 TOKEN = config.get('main', 'token')
@@ -38,9 +40,9 @@ def writeGroupList(data):
 
 # Helper function
 # Retrieves current userList
-def getUserList(name, groupList):
-    if name in groupList:
-        return groupList.get(name)
+def getUserList(groupName, groupList):
+    if groupName in groupList:
+        return groupList.get(groupName)
     else:
         return False
 
@@ -161,9 +163,21 @@ async def create(context, groupName=None):
         await context.send('The group `' + groupName + '` has been created.\n' +
                          'User `' + str(context.message.author) + '` has been added.')
 
+
+@client.command(name='ping')
+async def ping(context, groupName):
+    groupList = retrieveGroupList()
+    if groupName in groupList:
+        for user in getUserList(groupName, groupList):
+            temp = await memConverter.convert(context, user)
+            await temp.send('GAMES')
+    else:
+        await context.send('The group `' + groupName + '` doesn\'t exist.\n Use `' + create.signature + '`')
+
+
 @client.event
 async def on_command_error(context, exception):
-    print ('errored')
+    print ('errored' + str(exception))
     #await context.send('Usage is `' +  + '`')
     return
 
