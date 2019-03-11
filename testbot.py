@@ -12,7 +12,6 @@ BOT_PREFIX = ("!","$")
 
 config = SafeConfigParser()
 client = Bot(command_prefix=BOT_PREFIX)
-formatter = HelpFormatter()
 memConverter = MemberConverter()
 
 config.read('config.ini')
@@ -53,12 +52,7 @@ def getUserList(groupName, groupList):
                 pass_context=True
                 )
 async def joinGroup(context, groupName):    
-
-    if groupName is None:
-        print ('no args')
-        await context.send('No group name given. Usage is `' + context.command.signature + '`')
-        return
-
+    # if no group is provided, reference on_command_error
     groupList = retrieveGroupList() # update group list
     username = str(context.message.author) # helper for author's username
     
@@ -83,16 +77,11 @@ async def joinGroup(context, groupName):
 # Leaves a group the user is a member of
 @client.command(name='leave',
                 description='Leave a group that you are a part of.',
-                usage='leave <groupName>',
                 rest_is_raw=True,
                 pass_context=True
                 )
-async def leave(context, groupName=None):
-
-    if groupName is None:
-        print ('Need group name')
-        return
-
+async def leaveGroup(context, groupName):
+    # if no group is provided, reference on_command_error
     groupList = retrieveGroupList()
     username = str(context.message.author)
 
@@ -111,11 +100,10 @@ async def leave(context, groupName=None):
 # Retrieves current group or member list 
 @client.command(name='list',
                 description='List members of a group.',
-                usage='list <groupName>',
                 rest_is_raw=True,
                 pass_context=True
                 )
-async def list(context, groupName=None):
+async def listGroups(context, groupName=None):
 
     groupList = retrieveGroupList()
 
@@ -151,7 +139,7 @@ async def list(context, groupName=None):
                 description='Make group',
                 pass_context=True
                 )
-async def create(context, groupName=None):
+async def createGroup(context, groupName):
     groupList = retrieveGroupList()
     if groupName in groupList:
         await context.send('The group `' + groupName + '` already exists.\n' +
@@ -163,9 +151,8 @@ async def create(context, groupName=None):
         await context.send('The group `' + groupName + '` has been created.\n' +
                          'User `' + str(context.message.author) + '` has been added.')
 
-
 @client.command(name='ping')
-async def ping(context, groupName):
+async def pingGroup(context, groupName):
     groupList = retrieveGroupList()
     if groupName in groupList:
         for user in getUserList(groupName, groupList):
@@ -174,11 +161,10 @@ async def ping(context, groupName):
     else:
         await context.send('The group `' + groupName + '` doesn\'t exist.\n Use `' + create.signature + '`')
 
-
 @client.event
 async def on_command_error(context, exception):
-    print ('errored' + str(exception))
-    #await context.send('Usage is `' +  + '`')
+    print ('errored ' + str(exception))
+    await context.send('Usage is `[' + '|'.join(BOT_PREFIX) + ']' + context.command.signature + '`')
     return
 
 @client.event
