@@ -45,6 +45,11 @@ def getUserList(groupName, groupList):
     else:
         return False
 
+# Helper function
+# Returns a formatted Bot_Prefix
+def botPrefixFormatted():
+    return '[' + '|'.join(BOT_PREFIX) + ']'
+
 # Joins an existing group and writes to file
 @client.command(name='join',
                 description='Join a test group.',
@@ -159,12 +164,18 @@ async def pingGroup(context, groupName):
             temp = await memConverter.convert(context, user)
             await temp.send('GAMES')
     else:
-        await context.send('The group `' + groupName + '` doesn\'t exist.\n Use `' + create.signature + '`')
+        await context.send('The group `' + groupName + '` doesn\'t exist.\n Use `' + createGroup.signature + '`')
 
 @client.event
 async def on_command_error(context, exception):
     print ('errored ' + str(exception))
-    await context.send('Usage is `[' + '|'.join(BOT_PREFIX) + ']' + context.command.signature + '`')
+
+    f = HelpFormatter()
+    helpPages = await f.format_help_for(context, context.command)
+    for p in helpPages:
+        await context.send(p)
+
+    # await context.send('Usage is `' + context.command.signature + '`') Maybe use this instead?
     return
 
 @client.event
