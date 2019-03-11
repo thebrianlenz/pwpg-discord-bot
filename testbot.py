@@ -5,12 +5,16 @@ import json
 from datetime import datetime
 from discord.ext.commands import Bot
 from discord.ext.commands import HelpFormatter
+from configparser import SafeConfigParser
 
-TOKEN = 'NTUzMzI2MTI0NjE3NDMzMDg5.D2McqA.8V3vzjpoukU_V3aGp4Xf9Zqt0f4'
 BOT_PREFIX = ("!","$")
 
+config = SafeConfigParser()
 client = Bot(command_prefix=BOT_PREFIX)
 formatter = HelpFormatter()
+
+config.read('config.ini')
+TOKEN = config.get('main', 'token')
 
 # create group to sub to
 # list groups
@@ -160,8 +164,7 @@ async def create(context, groupName=None):
 @client.event
 async def on_command_error(context, exception):
     print ('errored')
-    await context.send('Usage is `' +  + '`')
-    
+    #await context.send('Usage is `' +  + '`')
     return
 
 @client.event
