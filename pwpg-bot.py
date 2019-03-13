@@ -8,7 +8,7 @@ from configparser import SafeConfigParser
 BOT_PREFIX = ("!","$")
 
 config = SafeConfigParser()
-client = Bot(command_prefix=BOT_PREFIX)
+client = Bot(command_prefix=BOT_PREFIX, case_insensitive=True)
 
 config.read('config.ini')
 TOKEN = config.get('main', 'token')
@@ -25,8 +25,10 @@ async def formatAndSendHelp(context):
 async def on_command_error(context, error):
 
     if isinstance(error, commands.CommandNotFound):
+        print('Command not found')
         return
     
+    print (error)
     await formatAndSendHelp(context)
 
 @client.command(name='load', 
@@ -58,7 +60,11 @@ async def _reload(context, module):
         await context.message.add_reaction('👍')
     except Exception as e:
         print(f'Failed to load module {module}.', e)
-        await context.message.add_reaction('👎')  
+        await context.message.add_reaction('👎')
+
+# @client.command(name='refresh', hidden=True, description='Clear client cache and relaunch')
+# async def _refresh(context):
+#     client.clear()
 
 @client.event
 async def on_ready():

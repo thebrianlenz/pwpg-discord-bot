@@ -1,14 +1,21 @@
 from discord.ext import commands
+from discord.ext.commands import Bot
 from discord.ext.commands import MemberConverter
 import asyncio
 import json
 
 class Grouping(commands.Cog):
-    print('Grouping loaded')
+
+    def __init__(self, bot):
+        #print('init')
+        self.bot = bot
 
     # Joins an existing group and writes to file
     @commands.command(name='sub',
-                    description='Subscribe to an existing group.',
+                    description='Subscribe to a group. Belonging '+
+                    'to a group will include you in pings.\n'+
+                    'Use [list] to find existing groups.',
+                    brief='Subscribe to a group.',
                     aliases=['subscribe','join'],
                     rest_is_raw=True,
                     pass_context=True
@@ -38,7 +45,9 @@ class Grouping(commands.Cog):
 
     # Leaves a group the user is a member of
     @commands.command(name='unsub',
-                    description='Unsubscribe from a group that you are a part of.',
+                    description='Unsubscribe from a group that you are a part of. Removes you from future '+
+                    'pings and notifications for this group.',
+                    brief='Unsubscribe from a group.',
                     aliases=['unsubscribe', 'leave'],
                     rest_is_raw=True,
                     pass_context=True
@@ -62,8 +71,10 @@ class Grouping(commands.Cog):
 
     # Retrieves current group or member list 
     @commands.command(name='list',
-                    description='List members of a group.',
-                    aliases=['ls', 'listgroup'],
+                    description='List all groups. To see members of a specific group, include the group name.',
+                    brief='List all groups, or members of a group.',
+                    aliases=['ls'],
+                    invoke_without_command=True,
                     rest_is_raw=True,
                     pass_context=True
                     )
@@ -72,7 +83,7 @@ class Grouping(commands.Cog):
         groupList = retrieveGroupList()
 
         # If no groupName is provided, list all groups
-        if groupName is None or (groupName is 'group' or 'groups'):
+        if (groupName is None) or (groupName == 'group') or (groupName == 'groups'):
             groupList = retrieveGroupList()
             temp = ''
             for tempgroup in groupList:
@@ -100,7 +111,9 @@ class Grouping(commands.Cog):
             
     # Creates a non-existing group and writes to file
     @commands.command(name='create',
-                    description='Make group',
+                    description='Make a group and add yourself to it. Groups can be pinged using [ping].',
+                    brief='Create a group',
+                    aliases=['make'],
                     pass_context=True
                     )
     async def createGroup(self, context, groupName):
@@ -116,7 +129,8 @@ class Grouping(commands.Cog):
                             'User `' + str(context.message.author) + '` has been added.')
 
     @commands.command(name='play',
-                    description='Start a lobby to play',
+                    description='Start a lobby to play. [WIP]',
+                    brief='[WIP]',
                     pass_context=True
                     )
     async def createGameLobby(self, context, groupName):
@@ -126,19 +140,32 @@ class Grouping(commands.Cog):
         # 
         return
 
-    @commands.command(name='ping')
-    async def pingGroup(self, context, groupName):
+    @commands.command(name='ping',
+                    description='Ping a group. Pinging sends a single message to all users in a group. '+
+                    'Include an optional message for the ping.',
+                    brief='Ping a group',
+                    aliases=['poke'],
+                    invoke_without_command=True,
+                    pass_context=True
+                    )
+    async def pingGroup(self, context, groupName, *, optionalMessage=None):
         groupList = retrieveGroupList()
         memConverter = MemberConverter()
+
+        message = '`' + context.author.display_name + '` has pinged `' + groupName + '`.'
+
+        if optionalMessage != None:
+            message = message + '```' + optionalMessage + '```'            
+
         if groupName in groupList:
             for user in getUserList(groupName, groupList):
-                temp = await memConverter.convert(context, user)
-                await temp.send('GAMES')
+                member = await memConverter.convert(context, user)
+                await member.send(message)
         else:
             await context.send('The group `' + groupName + '` doesn\'t exist.\n Use `' + context.createGroup.signature + '`')
 
 def setup(bot):
-    bot.add_cog(Grouping())
+    bot.add_cog(Grouping(bot))
 
 def teardown(bot):
     bot.remove_cog('Grouping')
