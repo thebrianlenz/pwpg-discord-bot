@@ -150,16 +150,21 @@ class Grouping(commands.Cog):
                     )
     async def pingGroup(self, context, groupName, *, optionalMessage=None):
         groupList = retrieveGroupList()
-        memConverter = MemberConverter()
 
-        message = '`' + context.author.display_name + '` has pinged `' + groupName + '`.'
-
-        if optionalMessage != None:
-            message = message + '```' + optionalMessage + '```'            
-
+        # If the group name actually exists
         if groupName in groupList:
+            memConverter = MemberConverter() # For converting user string to an actual user
+
+            # Base message, is always sent "<sender> has pinged <group>"
+            message = '`' + context.author.display_name + '` has pinged `' + groupName + '`.'
+
+            # Append optional message in a code block
+            if optionalMessage != None:
+                message = message + '```' + optionalMessage + '```'            
+
+            # Iterate userlist
             for user in getUserList(groupName, groupList):
-                member = await memConverter.convert(context, user)
+                member = await memConverter.convert(context, user) # Convert to user
                 await member.send(message)
         else:
             await context.send('The group `' + groupName + '` doesn\'t exist.\n Use `' + context.createGroup.signature + '`')
