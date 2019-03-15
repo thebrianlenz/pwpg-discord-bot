@@ -1,5 +1,6 @@
 # Work with Python 3.6
 import discord
+import asyncio
 from discord.ext.commands import Bot
 from discord.ext.commands import HelpFormatter
 from discord.ext import commands
@@ -62,9 +63,15 @@ async def _reload(context, module):
         print(f'Failed to load module {module}.', e)
         await context.message.add_reaction('👎')
 
+@client.command(name='modules', hidden=True)
+async def _listModules(context):
+    print (str(client.extensions.keys()))
+
 # @client.command(name='refresh', hidden=True, description='Clear client cache and relaunch')
 # async def _refresh(context):
 #     client.clear()
+
+# TODO make event for other modules to listen for refresh cycles
 
 @client.event
 async def on_ready():
