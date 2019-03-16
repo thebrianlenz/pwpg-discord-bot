@@ -1,6 +1,8 @@
 # Work with Python 3.6
 import discord
 import asyncio
+import sys
+import traceback
 from discord.ext.commands import Bot
 from discord.ext.commands import HelpFormatter
 from discord.ext import commands
@@ -13,6 +15,10 @@ client = Bot(command_prefix=BOT_PREFIX, case_insensitive=True)
 
 config.read('config.ini')
 TOKEN = config.get('main', 'token')
+
+initial_modules = [
+        'GroupManager'
+        ]
 
 async def formatAndSendHelp(context):
     f = HelpFormatter()
@@ -80,5 +86,12 @@ async def on_ready():
     print(client.user.id)
     print('------')
     print(discord.__version__)
+    for m in initial_modules:
+            try:
+                client.load_extension(m)
+                print(f'{m} loaded.')
+            except Exception as e:
+                print(f'Failed to load extension {m}. {e}', file=sys.stderr)
+                traceback.print_exc()
 
 client.run(TOKEN)

@@ -1,12 +1,59 @@
 {
     "test": {
-        "description": "No Description",
         "member": {
-            "brianlenz#5231": {}
-        }
+            "brianlenz#5231": {
+                "offlinePing": false
+            }
+        },
+        "description": "cunt balls"
     },
-    "test2": {
-        "description": "No Description",
-        "member": {}
+    "poop": {
+        "member": {
+            "Malkizid#6194": {
+                "offlinePing": true
+            },
+            "brianlenz#5231": {
+                "offlinePing": true
+            },
+            "AeroBlitz#5661": {
+                "offlinePing": true
+            }
+        },
+        "description": "\ud83d\udca9"
+    },
+    "cunt": {
+        "member": {
+            "AeroBlitz#5661": {
+                "offlinePing": true
+            },
+            "Malkizid#6194": {
+                "offlinePing": true
+            }
+        },
+        "description": "\ud83c\udde6\ud83c\uddfa"
+    },
+    "linusmemetips": {
+        "member": {
+            "AeroBlitz#5661": {
+                "offlinePing": true
+            }
+        },
+        "description": "A bad test group for things"
+    },
+    "Bruh": {
+        "member": {
+            "AeroBlitz#5661": {
+                "offlinePing": true
+            }
+        },
+        "description": "'; DROP TABLE users; --"
+    },
+    "HotS": {
+        "member": {
+            "brianlenz#5231": {
+                "offlinePing": true
+            }
+        },
+        "description": "No Description"
     }
 }
