@@ -73,10 +73,6 @@ async def _reload(context, module):
 async def _listModules(context):
     print (str(client.extensions.keys()))
 
-# @client.command(name='refresh', hidden=True, description='Clear client cache and relaunch')
-# async def _refresh(context):
-#     client.clear()
-
 # TODO make event for other modules to listen for refresh cycles
 
 @client.event
