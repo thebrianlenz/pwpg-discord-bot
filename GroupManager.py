@@ -22,6 +22,13 @@ groupData = {}
 # members: [listOfMembers]
 # groupName: {description, members}
 
+# TODO: Remove the 'No Description' message on command repsonses
+#       Delete group confirmation
+#       List all of a single user's groups
+#       Cooldown on group creation
+#       Case insensitivity when join/leave
+#       Convert user data to the unique identifier (snowflake?) for save and eval
+
 class GroupManager(commands.Cog):
 
     def __init__(self, bot: Bot):
