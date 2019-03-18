@@ -1,13 +1,17 @@
 from discord.ext import commands
 from discord.ext.commands import Bot
 from discord.ext.commands import MemberConverter
+from discord import Status
+import discord
 import asyncio
 import json
 
 GROUP_FILE = 'groupsData.json'
 groupDataHasChanged = False
+isLoaded = False
 
 RESERVED_WORDS = ['group','groups','all']
+TICK_RATE = 1
 
 groupData = {}
 
@@ -18,13 +22,12 @@ groupData = {}
 # members: [listOfMembers]
 # groupName: {description, members}
 
-# TODO schedule file write for saving, listen for event from pwpg-bot?
-
 class GroupManager(commands.Cog):
 
     def __init__(self, bot: Bot):
         self.bot = bot
         readGroupData()
+        
 
     @commands.command(name='jsdump', hidden=True)
     async def dump(self, context):
@@ -48,10 +51,8 @@ class GroupManager(commands.Cog):
                 messageToSend += name + ': ' + groupData[name]['description'] + '\n\tMembers: ' + str(len(groupData[name]['member'])) + '\n'
         elif groupName in groupData:
             messageToSend += groupName + ' has ' + str(len(groupData[groupName]['member'])) + ' members.\n' + groupData[groupName]['description'] + '\n'
-            
             for m in groupData[groupName]['member']:
                 messageToSend += str(m) + '\n'
-        
         else:
             print('how did this even happen?')
             messageToSend += 'THIS SHOULD NOT BE SEEN!?'
@@ -81,13 +82,10 @@ class GroupManager(commands.Cog):
                     )
     async def joinGroupCommand(self, context, groupName, offlinePing=True):
         if joinGroup(context, groupName, offlinePing):
-            print('joined')
             await context.send('`'+ str(context.author) + '` has been added to `' + groupName + '`')
         else:
-            print('failed')
             await context.send('`'+ str(context.author) + '` could not be added to `' + groupName + '`')
 
-    # TODO leave group
     # Leaves a group the user is a member of
     @commands.command(name='unsub',
                     description='Unsubscribe from a group that you are a part of. Removes you from future '+
@@ -116,14 +114,21 @@ class GroupManager(commands.Cog):
     async def pingGroupCommand(self, context, groupName, *, optionalMessage=None):
         if groupName in groupData:
             m = MemberConverter()
-            messageToSend = '`' + str(context.author) + '` has pinged `' + groupName + '`.'
             
+            # Assemble message to send.
+            messageToSend = '`' + str(context.author) + '` has pinged `' + groupName + '`.'
             if optionalMessage is not None:
                 messageToSend += '\n' + optionalMessage
 
+            # For each member in the group,
+            # check user status and preference for offline ping
+            # send the message if online or wants offline pings
             for u in groupData[groupName]['member']:
                 user = await m.convert(context, u)
-                await user.send(messageToSend)
+                if groupData[groupName]['member'][u].get('offlinePing') or (user.status is Status.online or user.status is Status.idle):
+                    await user.send(messageToSend)
+                else:
+                    print('no offline ping and they aren\'t online')
             return True
         else:
             print('ping error -> no group')
@@ -131,7 +136,6 @@ class GroupManager(commands.Cog):
 
     # Creates a non-existing group
     # Write to GROUP_FILE
-    # TODO move write to pwpg-bot loop?
     @commands.command(name='create',
                     description='Make a group and add yourself to it. Add a short description of the group after the name. Groups can be pinged using [ping] <groupName>.',
                     brief='Create a group',
@@ -141,13 +145,11 @@ class GroupManager(commands.Cog):
     async def createGroupCommand(self, context, groupName, *, description=None):
         if addGroup(context, groupName, description):
             await context.send('Group `' + groupName + '` has been created.')
-            writeGroupData()
         else:
             print('create group failed')
 
     # Deletes an existing group
     # Write to GROUP_FILE
-    # TODO write in bot loop
     @commands.command(name='delete',
                     description='Removes an existing group. Confirmation is not implemented yet.',
                     brief='Remove a group',
@@ -158,7 +160,6 @@ class GroupManager(commands.Cog):
     async def deleteGroupCommand(self, context, groupName):
         if removeGroup(groupName):
             await context.send('Group `' + groupName + '` has been deleted.')
-            writeGroupData()
         else:
             print('delete group failed')
 
@@ -177,11 +178,18 @@ class GroupManager(commands.Cog):
             if editGroupDescription(groupName, description):
                 await context.send('The description for `' + groupName + '` has been updated.')
 
+# Main loop for the Group Manager to operate under
+# Checks for changes to the groupData and writes when needed
+async def groupManagerLoop(tickRate: int):
+    while (isLoaded):
+        if writeGroupData(): continue
+        await asyncio.sleep(tickRate)
+
 # Update data bool
 # Simple helper
-def signalForGroupDataUpdate():
+def signalForGroupDataUpdate(v: bool):
     global groupDataHasChanged
-    groupDataHasChanged = True
+    groupDataHasChanged = v
     return groupDataHasChanged
 
 # Create a group entry with an optional name
@@ -196,17 +204,17 @@ def addGroup(context, name: str, description=None):
         if description is None: description='No Description'
         groupData[name] = {'member':{}, 'description': description}
         joinGroup(context, name)
-        signalForGroupDataUpdate()
+        signalForGroupDataUpdate(True)
         return True
 
 # Removes entire entry for a group
 # Returns false if group doesn't exist
-# TODO error throws mark file has changes?
+# TODO error throws
 def removeGroup(name: str):
     global groupData
     if name in groupData.keys():
         groupData.pop(name)
-        signalForGroupDataUpdate()
+        signalForGroupDataUpdate(True)
         return True
     else:
         print('group doesn\'t exist -> throw error')
@@ -219,7 +227,7 @@ def editGroupDescription(name: str, description: str):
     global groupData
     if name in groupData:
         groupData[name]['description'] = description
-        signalForGroupDataUpdate()
+        signalForGroupDataUpdate(True)
         return True
     else:
         print('group doesn\'t exist -> throw error')
@@ -236,27 +244,10 @@ def joinGroup(context, name: str, offlinePing=True):
             print('user already in group -> throw error')
             return False
         groupData[name]['member'][str(context.author)] = userProps
-        signalForGroupDataUpdate()
+        signalForGroupDataUpdate(True)
         return True
     else:
         print('group doesn\'t exist -> throw error')
-        return False
-
-# Replace user properties for a group with dictionary
-# Returns false if already in group or no matching group
-# Will throw error if no dict provided (missing arg)
-# TODO error throws
-def editUserGroupProperties(context, name: str, properties: dict):
-    global groupData
-    if name in groupData:
-        if str(context.author) in groupData[name]['member']:
-            print('throw error, already in group')
-            return False
-        groupData[name]['member'] = {str(context.author): properties}
-        signalForGroupDataUpdate()
-        return True
-    else:
-        print('group no exist -> throw error')
         return False
 
 # Remove author from a group
@@ -267,7 +258,7 @@ def leaveGroup(context, name: str):
     if name in groupData:
         if str(context.author) in groupData[name]['member']:
             groupData[name]['member'].pop(str(context.author))
-            signalForGroupDataUpdate()
+            signalForGroupDataUpdate(True)
             return True
         else:
             print ('not in this group')
@@ -276,11 +267,31 @@ def leaveGroup(context, name: str):
         print ('group doesn\'t exist -> throw error')
         return False
 
+# Replace user properties for a group with dictionary
+# Returns false if already in group or no matching group
+# TODO throw error if no dict provided (missing arg)
+# TODO error throws
+def updateUserGroupProperties(context, name: str, properties: dict):
+    global groupData
+    if name in groupData:
+        if str(context.author) in groupData[name]['member']:
+            print('throw error, already in group')
+            return False
+        groupData[name]['member'] = {str(context.author): properties}
+        signalForGroupDataUpdate(True)
+        return True
+    else:
+        print('group no exist -> throw error')
+        return False
+
 # Write groupData dict to GROUP_FILE, return True if sucessful
+# Writes every TICK_RATE inside groupManagerLoop(int)
 def writeGroupData():
     if groupDataHasChanged:
         with open(GROUP_FILE, 'w') as f:
             json.dump(groupData, f, indent=4)
+            signalForGroupDataUpdate(False)
+            print('Group Data Written')
             return True
 
 # Read GROUP_FILE and assign to groupData dict, return groupData
@@ -288,11 +299,17 @@ def readGroupData():
     with open(GROUP_FILE, 'r') as f:
         global groupData
         groupData = json.load(f)
+        print('Group Data Loaded')
         return groupData
 
 def setup(bot):
+    global isLoaded
+    isLoaded = True
     bot.add_cog(GroupManager(bot))
+    bot.loop.create_task(groupManagerLoop(TICK_RATE))
 
 def teardown(bot):
+    global isLoaded
+    isLoaded = False
     writeGroupData()
     bot.remove_cog('GroupManager')

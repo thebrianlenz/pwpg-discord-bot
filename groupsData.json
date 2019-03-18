@@ -1,12 +1,4 @@
 {
-    "test": {
-        "member": {
-            "brianlenz#5231": {
-                "offlinePing": false
-            }
-        },
-        "description": "cunt balls"
-    },
     "poop": {
         "member": {
             "Malkizid#6194": {
@@ -31,22 +23,6 @@
             }
         },
         "description": "\ud83c\udde6\ud83c\uddfa"
-    },
-    "linusmemetips": {
-        "member": {
-            "AeroBlitz#5661": {
-                "offlinePing": true
-            }
-        },
-        "description": "A bad test group for things"
-    },
-    "Bruh": {
-        "member": {
-            "AeroBlitz#5661": {
-                "offlinePing": true
-            }
-        },
-        "description": "'; DROP TABLE users; --"
     },
     "HotS": {
         "member": {

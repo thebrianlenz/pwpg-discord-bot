@@ -73,8 +73,6 @@ async def _reload(context, module):
 async def _listModules(context):
     print (str(client.extensions.keys()))
 
-# TODO make event for other modules to listen for refresh cycles
-
 @client.event
 async def on_ready():
     print('Logged in as')
@@ -89,5 +87,5 @@ async def on_ready():
             except Exception as e:
                 print(f'Failed to load extension {m}. {e}', file=sys.stderr)
                 traceback.print_exc()
-
+                
 client.run(TOKEN)
