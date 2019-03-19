@@ -4,7 +4,7 @@ import asyncio
 import sys
 import traceback
 from discord.ext.commands import Bot
-from discord.ext.commands import HelpFormatter
+# from discord.ext.commands import HelpFormatter
 from discord.ext import commands
 from configparser import SafeConfigParser
 
@@ -20,14 +20,6 @@ initial_modules = [
         'GroupManager'
         ]
 
-async def formatAndSendHelp(context):
-    f = HelpFormatter()
-    helpPages = await f.format_help_for(context, context.command)
-    for p in helpPages:
-        await context.send(p)
-    # await context.send('Usage is `' + context.command.signature + '`') Maybe use this instead?
-    return
-
 @client.event
 async def on_command_error(context, error):
 
@@ -41,8 +33,9 @@ async def on_command_error(context, error):
         return
 
     print (error)
-    await formatAndSendHelp(context)
-    
+
+    await context.send_help(context.command)
+
     # Some other error, let the cooldown reset
     context.command.reset_cooldown(context)
 
@@ -70,8 +63,7 @@ async def _unload(context, module):
 @client.command(name='reload', hidden=True)
 async def _reload(context, module):
     try:
-        client.unload_extension(module)
-        client.load_extension(module)
+        client.reload_extension(module)
         await context.message.add_reaction('👍')
     except Exception as e:
         print(f'Failed to load module {module}.', e)
