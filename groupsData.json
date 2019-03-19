@@ -9,6 +9,9 @@
             },
             "AeroBlitz#5661": {
                 "offlinePing": true
+            },
+            "MaDReD#1112": {
+                "offlinePing": true
             }
         },
         "description": "Apex Legends"
@@ -28,6 +31,12 @@
                 "offlinePing": true
             },
             "AeroBlitz#5661": {
+                "offlinePing": true
+            },
+            "Lione#0141": {
+                "offlinePing": true
+            },
+            "MaDReD#1112": {
                 "offlinePing": true
             }
         },
@@ -49,6 +58,15 @@
             },
             "AeroBlitz#5661": {
                 "offlinePing": true
+            },
+            "Lione#0141": {
+                "offlinePing": true
+            },
+            "MaDReD#1112": {
+                "offlinePing": true
+            },
+            "Yas\u03bco#3169": {
+                "offlinePing": true
             }
         },
         "description": "Trouble in Terrorist Town"
@@ -66,16 +84,41 @@
             },
             "AeroBlitz#5661": {
                 "offlinePing": true
+            },
+            "MaDReD#1112": {
+                "offlinePing": true
             }
         },
-        "description": "Overworld Trading Company"
+        "description": "Offworld Trading Company"
     },
     "RoR": {
         "member": {
             "Anne#1306": {
                 "offlinePing": true
+            },
+            "MaDReD#1112": {
+                "offlinePing": true
+            },
+            "JordD04#7136": {
+                "offlinePing": true
             }
         },
         "description": "Risk of Rain !"
+    },
+    "40k": {
+        "member": {
+            "JordD04#7136": {
+                "offlinePing": true
+            }
+        },
+        "description": "Warhammer 40k"
+    },
+    "CivVI": {
+        "member": {
+            "JordD04#7136": {
+                "offlinePing": true
+            }
+        },
+        "description": "Sid Meier's Civilization VI"
     }
 }

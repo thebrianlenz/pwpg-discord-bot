@@ -42,6 +42,9 @@ async def on_command_error(context, error):
 
     print (error)
     await formatAndSendHelp(context)
+    
+    # Some other error, let the cooldown reset
+    context.command.reset_cooldown(context)
 
 @client.command(name='load', 
                 hidden=True,

@@ -44,8 +44,9 @@ class GroupManager(commands.Cog):
 
         # Taking care of the error
         if isinstance(error, commands.CommandOnCooldown):
-            print(error)
             await context.message.add_reaction('⌛')
+            await asyncio.sleep(error.retry_after)
+            await context.message.remove_reaction('⌛', context.bot.user)
             return
 
         # Finished handling our errors, anything left will go to the generic handler
@@ -89,7 +90,7 @@ class GroupManager(commands.Cog):
     @commands.cooldown(1, 30, commands.BucketType.channel)
     @commands.command(name='mysubs',
                     description='List all of your group subscriptions.',
-                    brief='List your subs',
+                    brief='List all of your subs',
                     aliases=['mygroups'],
                     pass_context=True
                     )
@@ -169,7 +170,7 @@ class GroupManager(commands.Cog):
 
     # Creates a non-existing group
     # Write to GROUP_FILE
-    @commands.cooldown(1, 30, commands.BucketType.user)
+    @commands.cooldown(1, 10, commands.BucketType.user)
     @commands.command(name='create',
                     description='Make a group and add yourself to it. Add a short description of the group after the name. Groups can be pinged using [ping] <groupName>.',
                     brief='Create a group',
@@ -180,6 +181,7 @@ class GroupManager(commands.Cog):
         if addGroup(context, groupName, description):
             await context.send('Group `' + groupName + '` has been created.')
         else:
+            context.command.reset_cooldown(context)
             print('create group failed')
 
     # Deletes an existing group
