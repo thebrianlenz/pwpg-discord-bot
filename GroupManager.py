@@ -29,6 +29,8 @@ groupData = {}
 #           Needs better error management, doesn't feel very clean
 #       Case insensitivity when join/leave
 #       Convert user data to the unique identifier (snowflake?) for save and eval
+#       Temporary group mute for a user
+#       Offline ping preference setting
 
 class GroupManager(commands.Cog):
 
@@ -216,6 +218,17 @@ class GroupManager(commands.Cog):
             if editGroupDescription(groupName, description):
                 await context.send('The description for `' + groupName + '` has been updated.')
 
+    # Edit a user's group preference
+    @commands.command(name='myprefs',
+                    description='Edit your preferences for a group. Currently includes: \nOffline Ping:\t Receiving Pings when offline',
+                    brief='Edit your group preferences',
+                    aliases=['mypref'],
+                    pass_context=True
+                    )
+    async def editUsersGroupPreferenceCommand(self, context, groupName, offlinePing=True):
+        preferences = {'offlinePing': offlinePing}
+        updateUserGroupPreferences(context, groupName, preferences)
+
 # Main loop for the Group Manager to operate under
 # Checks for changes to the groupData and writes when needed
 async def groupManagerLoop(tickRate: int):
@@ -305,15 +318,15 @@ def leaveGroup(context, name: str):
         print ('group doesn\'t exist -> throw error')
         return False
 
-# Replace user properties for a group with dictionary
-# Returns false if already in group or no matching group
+# Replace user preferences for a group with dictionary
+# Returns false if not in group or no matching group
 # TODO throw error if no dict provided (missing arg)
 # TODO error throws
-def updateUserGroupProperties(context, name: str, properties: dict):
+def updateUserGroupPreferences(context, name: str, properties: dict):
     global groupData
     if name in groupData:
-        if str(context.author) in groupData[name]['member']:
-            print('throw error, already in group')
+        if str(context.author) not in groupData[name]['member']:
+            print('throw error, not in group')
             return False
         groupData[name]['member'] = {str(context.author): properties}
         signalForGroupDataUpdate(True)
