@@ -1,12 +1,12 @@
 # Work with Python 3.6
-import discord
 import asyncio
 import sys
 import traceback
-from discord.ext.commands import Bot
-# from discord.ext.commands import HelpFormatter
-from discord.ext import commands
 from configparser import SafeConfigParser
+
+import discord
+from discord.ext import commands
+from discord.ext.commands import Bot
 
 BOT_PREFIX = ("!","$")
 
