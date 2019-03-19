@@ -31,10 +31,15 @@ async def formatAndSendHelp(context):
 @client.event
 async def on_command_error(context, error):
 
+    if hasattr(context, 'error_being_handled') and context.error_being_handled: return
+
     if isinstance(error, commands.CommandNotFound):
         print('Command not found')
         return
-    
+    if isinstance(error, commands.CommandOnCooldown):
+        print(error)
+        return
+
     print (error)
     await formatAndSendHelp(context)
 
@@ -87,5 +92,5 @@ async def on_ready():
             except Exception as e:
                 print(f'Failed to load extension {m}. {e}', file=sys.stderr)
                 traceback.print_exc()
-                
+
 client.run(TOKEN)

@@ -22,10 +22,11 @@ groupData = {}
 # members: [listOfMembers]
 # groupName: {description, members}
 
-# TODO: Remove the 'No Description' message on command repsonses
+# TODO: √ Remove the 'No Description' message on command repsonses
 #       Delete group confirmation
-#       List all of a single user's groups
-#       Cooldown on group creation
+#       √ List all of a single user's groups
+#       √ Cooldown on group creation
+#           Needs better error management, doesn't feel very clean
 #       Case insensitivity when join/leave
 #       Convert user data to the unique identifier (snowflake?) for save and eval
 
@@ -34,7 +35,21 @@ class GroupManager(commands.Cog):
     def __init__(self, bot: Bot):
         self.bot = bot
         readGroupData()
-        
+
+    async def cog_command_error(self, context, error):
+        if hasattr(context.command, 'on_error'): return
+
+        # Marks the context that we are handling the error
+        setattr(context, 'error_being_handled', True)
+
+        # Taking care of the error
+        if isinstance(error, commands.CommandOnCooldown):
+            print(error)
+            await context.message.add_reaction('⌛')
+            return
+
+        # Finished handling our errors, anything left will go to the generic handler
+        setattr(context, 'error_being_handled', False)
 
     @commands.command(name='jsdump', hidden=True)
     async def dump(self, context):
@@ -42,6 +57,7 @@ class GroupManager(commands.Cog):
         writeGroupData()
 
     # Return full list of all groups with member count (short descr too?)
+    @commands.cooldown(1, 5, commands.BucketType.channel)
     @commands.command(name='list',
                     description='List all groups. To see members of a specific group, include the group name.',
                     brief='List all groups, or members of a group.',
@@ -52,13 +68,16 @@ class GroupManager(commands.Cog):
                     )
     async def listGroupsCommand(self, context, groupName=None):
         messageToSend = ''
-        if (groupName is None) or (groupName is RESERVED_WORDS) or (groupName not in groupData):
-            messageToSend += 'There are currently ' + str(len(groupData)) + ' groups on PWPG!\n'
-            for name in groupData:
-                messageToSend += name + ': ' + groupData[name]['description'] + '\n\tMembers: ' + str(len(groupData[name]['member'])) + '\n'
+        if (groupName is None) or (groupName is RESERVED_WORDS) or (groupName not in groupData): # Conditions to list all groups (no name given, reserved words, or isn't in groupData)
+            messageToSend += 'There are currently ' + str(len(groupData)) + ' groups on PWPG!\n' 
+            for n in groupData:
+                messageToSend += n + ': '
+                if groupData[n]['description'] != 'No Description': messageToSend += groupData[n]['description'] # Add the description if the group has one
+                messageToSend += '\n\tMembers: ' + str(len(groupData[n]['member'])) + '\n'
         elif groupName in groupData:
-            messageToSend += groupName + ' has ' + str(len(groupData[groupName]['member'])) + ' members.\n' + groupData[groupName]['description'] + '\n'
-            for m in groupData[groupName]['member']:
+            messageToSend += groupName + ' has ' + str(len(groupData[groupName]['member'])) + ' members.\n' # <groupName> has <number> members \n
+            if groupData[groupName]['description'] != 'No Description': messageToSend += groupData[groupName]['description'] + '\n' # Add the description if the group has one
+            for m in groupData[groupName]['member']: # Add each member
                 messageToSend += str(m) + '\n'
         else:
             print('how did this even happen?')
@@ -66,15 +85,21 @@ class GroupManager(commands.Cog):
 
         await context.send('```' + messageToSend + '```')
     
-    # TODO docs and command params
-    @commands.command(name='members',
-                    hidden=True,
+    # Returns a user's full list of memberships
+    @commands.cooldown(1, 30, commands.BucketType.channel)
+    @commands.command(name='mysubs',
+                    description='List all of your group subscriptions.',
+                    brief='List your subs',
+                    aliases=['mygroups'],
                     pass_context=True
                     )
-    async def listGroupMembersCommand(self, context, groupName):
-        if groupName in groupData:
-            print ('print shit for a group')
-        else: print ('no group')
+    async def listUsersGroups(self, context):
+        messageToSend = '```' + str(context.author) + ' is in:\n'
+        for groupName in groupData:
+            if str(context.author) in groupData[groupName]['member']:
+                messageToSend += '\t' + groupName + '\n'
+        messageToSend += '```'
+        await context.send(messageToSend)
 
     # Joins an existing group and writes to file
     # TODO error calls?
@@ -110,6 +135,7 @@ class GroupManager(commands.Cog):
 
     # Ping a group with an optional message
     # Check if user is online, consult property
+    @commands.cooldown(1, 30, commands.BucketType.user)
     @commands.command(name='ping',
                     description='Ping a group. Pinging sends a single message to all users in a group. '+
                     'Include an optional message for the ping.',
@@ -143,6 +169,7 @@ class GroupManager(commands.Cog):
 
     # Creates a non-existing group
     # Write to GROUP_FILE
+    @commands.cooldown(1, 30, commands.BucketType.user)
     @commands.command(name='create',
                     description='Make a group and add yourself to it. Add a short description of the group after the name. Groups can be pinged using [ping] <groupName>.',
                     brief='Create a group',
@@ -157,6 +184,7 @@ class GroupManager(commands.Cog):
 
     # Deletes an existing group
     # Write to GROUP_FILE
+    @commands.cooldown(1, 30, commands.BucketType.user)
     @commands.command(name='delete',
                     description='Removes an existing group. Confirmation is not implemented yet.',
                     brief='Remove a group',
@@ -171,6 +199,7 @@ class GroupManager(commands.Cog):
             print('delete group failed')
 
     # Edits an existing group's description
+    @commands.cooldown(1, 30, commands.BucketType.user)
     @commands.command(name='edit',
                     description='Edit an existing group\'s description. No quotations are needed.',
                     brief='Edit a group description',

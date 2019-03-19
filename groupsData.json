@@ -1,35 +1,81 @@
 {
-    "poop": {
+    "apex": {
         "member": {
-            "Malkizid#6194": {
+            "brianlenz#5231": {
                 "offlinePing": true
             },
-            "brianlenz#5231": {
+            "Malkizid#6194": {
                 "offlinePing": true
             },
             "AeroBlitz#5661": {
                 "offlinePing": true
             }
         },
-        "description": "\ud83d\udca9"
+        "description": "Apex Legends"
     },
-    "cunt": {
+    "hots": {
         "member": {
-            "AeroBlitz#5661": {
+            "brianlenz#5231": {
+                "offlinePing": true
+            },
+            "JordD04#7136": {
                 "offlinePing": true
             },
             "Malkizid#6194": {
                 "offlinePing": true
-            }
-        },
-        "description": "\ud83c\udde6\ud83c\uddfa"
-    },
-    "HotS": {
-        "member": {
-            "brianlenz#5231": {
+            },
+            "Shmattins#1739": {
+                "offlinePing": true
+            },
+            "AeroBlitz#5661": {
                 "offlinePing": true
             }
         },
-        "description": "No Description"
+        "description": "Heroes of the Storm"
+    },
+    "ttt": {
+        "member": {
+            "JordD04#7136": {
+                "offlinePing": true
+            },
+            "Malkizid#6194": {
+                "offlinePing": true
+            },
+            "Smithle#2467": {
+                "offlinePing": true
+            },
+            "Shmattins#1739": {
+                "offlinePing": true
+            },
+            "AeroBlitz#5661": {
+                "offlinePing": true
+            }
+        },
+        "description": "Trouble in Terrorist Town"
+    },
+    "owtc": {
+        "member": {
+            "JordD04#7136": {
+                "offlinePing": true
+            },
+            "Malkizid#6194": {
+                "offlinePing": true
+            },
+            "Smithle#2467": {
+                "offlinePing": true
+            },
+            "AeroBlitz#5661": {
+                "offlinePing": true
+            }
+        },
+        "description": "Overworld Trading Company"
+    },
+    "RoR": {
+        "member": {
+            "Anne#1306": {
+                "offlinePing": true
+            }
+        },
+        "description": "Risk of Rain !"
     }
 }
