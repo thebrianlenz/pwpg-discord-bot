@@ -60,7 +60,7 @@ async def _unload(context, module):
         print(f'Failed to load extension {module}.', e)
         await context.message.add_reaction('👎')
 
-@client.command(name='reload', hidden=True)
+@client.command(name='reload', aliases=['rl'], hidden=True)
 async def _reload(context, module):
     try:
         client.reload_extension(module)
@@ -72,6 +72,15 @@ async def _reload(context, module):
 @client.command(name='modules', hidden=True)
 async def _listModules(context):
     print (str(client.extensions.keys()))
+
+@client.command(name='rlsh', hidden=True)
+async def _reloadSecretHitler(context):
+    try:
+        client.reload_extension('SecretHitler')
+        await context.message.add_reaction('👍')
+    except Exception as e:
+        print(f'Failed to load module SH.', e)
+        await context.message.add_reaction('👎')
 
 @client.event
 async def on_ready():

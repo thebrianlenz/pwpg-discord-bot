@@ -30,7 +30,8 @@ groupData = {}
 #       Case insensitivity when join/leave
 #       Convert user data to the unique identifier (snowflake?) for save and eval
 #       Temporary group mute for a user
-#       Offline ping preference setting
+#       √ Offline ping preference setting
+#           Needs a refactor for more/smarter preferences
 
 class GroupManager(commands.Cog):
 

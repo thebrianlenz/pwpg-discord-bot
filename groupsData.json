@@ -12,6 +12,9 @@
             },
             "MaDReD#1112": {
                 "offlinePing": true
+            },
+            "Stokie#3345": {
+                "offlinePing": true
             }
         },
         "description": "Apex Legends"
@@ -67,6 +70,9 @@
             },
             "Yas\u03bco#3169": {
                 "offlinePing": true
+            },
+            "Stokie#3345": {
+                "offlinePing": true
             }
         },
         "description": "Trouble in Terrorist Town"
@@ -86,6 +92,9 @@
                 "offlinePing": true
             },
             "MaDReD#1112": {
+                "offlinePing": true
+            },
+            "Stokie#3345": {
                 "offlinePing": true
             }
         },
@@ -109,6 +118,9 @@
         "member": {
             "JordD04#7136": {
                 "offlinePing": true
+            },
+            "Malkizid#6194": {
+                "offlinePing": true
             }
         },
         "description": "Warhammer 40k"
@@ -120,8 +132,39 @@
             },
             "Smithle#2467": {
                 "offlinePing": true
+            },
+            "Malkizid#6194": {
+                "offlinePing": true
             }
         },
         "description": "Sid Meier's Civilization VI"
+    },
+    "factorio": {
+        "member": {
+            "Anne#1306": {
+                "offlinePing": true
+            },
+            "JordD04#7136": {
+                "offlinePing": true
+            },
+            "Malkizid#6194": {
+                "offlinePing": true
+            }
+        },
+        "description": "No Description"
+    },
+    "fans_of_pwpg_bot": {
+        "member": {
+            "Anne#1306": {
+                "offlinePing": true
+            },
+            "Smithle#2467": {
+                "offlinePing": true
+            },
+            "Shmattins#1739": {
+                "offlinePing": true
+            }
+        },
+        "description": "No Description"
     }
 }
