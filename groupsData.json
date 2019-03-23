@@ -2,19 +2,19 @@
     "apex": {
         "member": {
             "brianlenz#5231": {
-                "offlinePing": true
+                "offlinePing": false
             },
             "Malkizid#6194": {
-                "offlinePing": true
+                "offlinePing": false
             },
             "AeroBlitz#5661": {
-                "offlinePing": true
+                "offlinePing": false
             },
             "MaDReD#1112": {
-                "offlinePing": true
+                "offlinePing": false
             },
             "Stokie#3345": {
-                "offlinePing": true
+                "offlinePing": false
             }
         },
         "description": "Apex Legends"
@@ -22,25 +22,25 @@
     "hots": {
         "member": {
             "brianlenz#5231": {
-                "offlinePing": true
+                "offlinePing": false
             },
             "JordD04#7136": {
-                "offlinePing": true
+                "offlinePing": false
             },
             "Malkizid#6194": {
-                "offlinePing": true
+                "offlinePing": false
             },
             "Shmattins#1739": {
-                "offlinePing": true
+                "offlinePing": false
             },
             "AeroBlitz#5661": {
-                "offlinePing": true
+                "offlinePing": false
             },
             "Lione#0141": {
-                "offlinePing": true
+                "offlinePing": false
             },
             "MaDReD#1112": {
-                "offlinePing": true
+                "offlinePing": false
             }
         },
         "description": "Heroes of the Storm"
@@ -48,31 +48,31 @@
     "ttt": {
         "member": {
             "JordD04#7136": {
-                "offlinePing": true
+                "offlinePing": false
             },
             "Malkizid#6194": {
-                "offlinePing": true
+                "offlinePing": false
             },
             "Smithle#2467": {
-                "offlinePing": true
+                "offlinePing": false
             },
             "Shmattins#1739": {
-                "offlinePing": true
+                "offlinePing": false
             },
             "AeroBlitz#5661": {
-                "offlinePing": true
+                "offlinePing": false
             },
             "Lione#0141": {
-                "offlinePing": true
+                "offlinePing": false
             },
             "MaDReD#1112": {
-                "offlinePing": true
+                "offlinePing": false
             },
             "Yas\u03bco#3169": {
-                "offlinePing": true
+                "offlinePing": false
             },
             "Stokie#3345": {
-                "offlinePing": true
+                "offlinePing": false
             }
         },
         "description": "Trouble in Terrorist Town"
@@ -80,22 +80,22 @@
     "owtc": {
         "member": {
             "JordD04#7136": {
-                "offlinePing": true
+                "offlinePing": false
             },
             "Malkizid#6194": {
-                "offlinePing": true
+                "offlinePing": false
             },
             "Smithle#2467": {
-                "offlinePing": true
+                "offlinePing": false
             },
             "AeroBlitz#5661": {
-                "offlinePing": true
+                "offlinePing": false
             },
             "MaDReD#1112": {
-                "offlinePing": true
+                "offlinePing": false
             },
             "Stokie#3345": {
-                "offlinePing": true
+                "offlinePing": false
             }
         },
         "description": "Offworld Trading Company"
@@ -103,13 +103,13 @@
     "RoR": {
         "member": {
             "Anne#1306": {
-                "offlinePing": true
+                "offlinePing": false
             },
             "MaDReD#1112": {
-                "offlinePing": true
+                "offlinePing": false
             },
             "JordD04#7136": {
-                "offlinePing": true
+                "offlinePing": false
             }
         },
         "description": "Risk of Rain !"
@@ -117,10 +117,10 @@
     "40k": {
         "member": {
             "JordD04#7136": {
-                "offlinePing": true
+                "offlinePing": false
             },
             "Malkizid#6194": {
-                "offlinePing": true
+                "offlinePing": false
             }
         },
         "description": "Warhammer 40k"
@@ -128,13 +128,13 @@
     "CivVI": {
         "member": {
             "JordD04#7136": {
-                "offlinePing": true
+                "offlinePing": false
             },
             "Smithle#2467": {
-                "offlinePing": true
+                "offlinePing": false
             },
             "Malkizid#6194": {
-                "offlinePing": true
+                "offlinePing": false
             }
         },
         "description": "Sid Meier's Civilization VI"
@@ -142,13 +142,13 @@
     "factorio": {
         "member": {
             "Anne#1306": {
-                "offlinePing": true
+                "offlinePing": false
             },
             "JordD04#7136": {
-                "offlinePing": true
+                "offlinePing": false
             },
             "Malkizid#6194": {
-                "offlinePing": true
+                "offlinePing": false
             }
         },
         "description": "No Description"
@@ -156,13 +156,21 @@
     "fans_of_pwpg_bot": {
         "member": {
             "Anne#1306": {
-                "offlinePing": true
+                "offlinePing": false
             },
             "Smithle#2467": {
-                "offlinePing": true
+                "offlinePing": false
             },
             "Shmattins#1739": {
-                "offlinePing": true
+                "offlinePing": false
+            }
+        },
+        "description": "No Description"
+    },
+    "DRG": {
+        "member": {
+            "Smithle#2467": {
+                "offlinePing": false
             }
         },
         "description": "No Description"

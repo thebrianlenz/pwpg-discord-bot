@@ -90,7 +90,7 @@ class GroupManager(commands.Cog):
         await context.send('```' + messageToSend + '```')
     
     # Returns a user's full list of memberships
-    @commands.cooldown(1, 30, commands.BucketType.channel)
+    @commands.cooldown(1, 10, commands.BucketType.channel)
     @commands.command(name='mysubs',
                     description='List all of your group subscriptions.',
                     brief='List all of your subs',
@@ -101,7 +101,7 @@ class GroupManager(commands.Cog):
         messageToSend = '```' + str(context.author) + ' is in:\n'
         for groupName in groupData:
             if str(context.author) in groupData[groupName]['member']:
-                messageToSend += '\t' + groupName + '\n'
+                messageToSend += '\t' + groupName + ':\t Offline Ping: ' + str(groupData[groupName]['member'][str(context.author)]['offlinePing']) + '\n'
         messageToSend += '```'
         await context.send(messageToSend)
 
@@ -329,7 +329,7 @@ def updateUserGroupPreferences(context, name: str, properties: dict):
         if str(context.author) not in groupData[name]['member']:
             print('throw error, not in group')
             return False
-        groupData[name]['member'] = {str(context.author): properties}
+        groupData[name]['member'][str(context.author)] = properties
         signalForGroupDataUpdate(True)
         return True
     else:
