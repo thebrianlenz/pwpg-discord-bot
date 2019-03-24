@@ -84,10 +84,7 @@ class GroupManager(commands.Cog):
             if groupData[groupName]['description'] != 'No Description': messageToSend += groupData[groupName]['description'] + '\n' # Add the description if the group has one
             messageToSend += '---' + '\n'
             for m in groupData[groupName]['member']: # Add each member
-                # messageToSend += str(m) + '\n'
-                print(m)
                 member = await mc.convert(context, m)
-                print('after convert')
                 messageToSend += member.name + '\n'
         else:
             print('how did this even happen?')
