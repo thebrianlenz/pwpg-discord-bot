@@ -50,6 +50,93 @@ ROLE_DISTRIBUTION = {5:  {'Liberal': 3, 'Fascist': 1, 'Hitler': 1},
                      10: {'Liberal': 6, 'Fascist': 3, 'Hitler': 1}
                      }
 
+# add players to player list (lobby)
+# let players ready up
+# count number of players and evaluate
+# assign roles randomly
+# assign player order (random?)
+# assign first president
+
+# Makes a player, with assosciated properties
+def makePlayerProps(name='Empty', party='Unassigned', role='Unassigned', position=-1, ready=False, tl=False, dead=False):
+    props = {'Name': name,
+             'Party': party,
+             'Role': role,
+             'Position': position,
+             'Ready': ready,
+             'Term-Limited': tl,
+             'Dead': dead
+             }
+    return props
+
+# Adds the author of the command to the active lobby as 'unready'
+def joinActiveLobby(context):
+    #playerList[context.author.id] = makePlayerProps(name=context.author.name)
+    lobbyList.append(context.author.id)
+
+# TEMPORARY HELPER FOR TESTING
+def makeFakePlayers(context, num: int):
+    for i in range(num):
+        lobbyList.append(1 + i)
+
+# Sets the author in the active lobby to 'ready'
+# Author must already be in lobby
+def readyActiveLobby(context):
+    if context.author.id in playerList:
+        playerList[context.author.id]['Ready'] = True
+    else:
+        print('Player not in lobby')
+
+def _makeRoleListForAssignment(roleLayout: dict):
+    roleList = []
+    for i in roleLayout:
+        for _ in range(roleLayout[i]):
+            roleList.append(i)
+    return roleList
+
+# Count the players in lobby and assign all to the playerList with role, party, and position
+def evaluateAndAssignPlayerRoles(context):
+    playerCount = len(lobbyList)                                            # Helper for player count
+    if playerCount in range(5, 10+1):                                       # Check for valid number of players, 5-10
+        roles = _makeRoleListForAssignment(ROLE_DISTRIBUTION[playerCount])  # Assign the appropriate role distribution
+        random.shuffle(roles)                                               # Shuffle to feel better
+        positions = list(range(playerCount))                                # Make a position list of the total player count
+        
+        # For each player in the lobby
+        for playerID in lobbyList:
+            roleAssignment = random.choice(roles)                           # Choose a random role
+            positionAssignment = random.choice(positions)                   # Choose a random position
+            if roleAssignment is 'Liberal': partyAssignment = 'Liberal'     # Assign the party
+            else: partyAssignment = 'Fascist'
+            
+            # Make and assign the player to playerList
+            user = context.bot.get_user(playerID)
+            if user is None: name = 'Fake Player: ' + str(playerID)
+            else: name = user.name
+            playerList[playerID] = makePlayerProps(name=name,
+                                                    party=partyAssignment,
+                                                    role=roleAssignment,
+                                                    position=positionAssignment
+                                                    )
+            roles.remove(roleAssignment)                                    # Remove the role
+            positions.remove(positionAssignment)                            # Remove the position
+            print(playerList[playerID])
+    else:
+        print('Player count invalid: ' + str(playerCount))
+
+# Main loop for Secret Hitler
+# Handle display drawing
+async def mainLoop(context, tickRate: int):
+    gameBoardMessage = None
+    count = 0
+    while isLoaded:
+        if gameBoardMessage is None:
+            gameBoardMessage = await context.send('Here is the base message for SH')
+        else:
+            await gameBoardMessage.edit(content=str(count))
+            count += 1
+        await asyncio.sleep(tickRate)
+
 class SecretHitler(commands.Cog, command_attrs=dict(hidden=True)):
 
     def __init__(self, bot: Bot):
@@ -121,93 +208,6 @@ class SecretHitler(commands.Cog, command_attrs=dict(hidden=True)):
         global isLoaded
         isLoaded = False
 
-# add players to player list (lobby)
-# let players ready up
-# count number of players and evaluate
-# assign roles randomly
-# assign player order (random?)
-# assign first president
-
-# Makes a player, with assosciated properties
-def makePlayerProps(name='Empty', party='Unassigned', role='Unassigned', position=-1, ready=False, tl=False, dead=False):
-    props = {'Name': name,
-             'Party': party,
-             'Role': role,
-             'Position': position,
-             'Ready': ready,
-             'Term-Limited': tl,
-             'Dead': dead
-             }
-    return props
-
-# Adds the author of the command to the active lobby as 'unready'
-def joinActiveLobby(context):
-    #playerList[context.author.id] = makePlayerProps(name=context.author.name)
-    lobbyList.append(context.author.id)
-
-def makeFakePlayers(context, num: int):
-    for i in range(num):
-        lobbyList.append(context.author.id + i)
-
-# Sets the author in the active lobby to 'ready'
-# Author must already be in lobby
-def readyActiveLobby(context):
-    if context.author.id in playerList:
-        playerList[context.author.id]['Ready'] = True
-    else:
-        print('Player not in lobby')
-
-def _makeRoleListForAssignment(roleLayout: dict):
-    roleList = []
-    for i in roleLayout:
-        for _ in range(roleLayout[i]):
-            roleList.append(i)
-    return roleList
-
-# Count the players in lobby and assign all to the playerList with role, party, and position
-def evaluateAndAssignPlayerRoles(context):
-    playerCount = len(lobbyList)                                            # Helper for player count
-    if playerCount in range(5, 10+1):                                       # Check for valid number of players, 5-10
-        roles = _makeRoleListForAssignment(ROLE_DISTRIBUTION[playerCount])  # Assign the appropriate role distribution
-        random.shuffle(roles)                                               # Shuffle to feel better
-        positions = list(range(playerCount))                                # Make a position list of the total player count
-        
-        # For each player in the lobby
-        for playerID in lobbyList:
-            roleAssignment = random.choice(roles)                           # Choose a random role
-            positionAssignment = random.choice(positions)                   # Choose a random position
-            if roleAssignment is 'Liberal': partyAssignment = 'Liberal'     # Assign the party
-            else: partyAssignment = 'Fascist'
-            
-            # Make and assign the player to playerList
-            user = context.bot.get_user(playerID)
-            if user is None: name = 'None'
-            else: name = user.name
-            playerList[playerID] = makePlayerProps(name=name,
-                                                    party=partyAssignment,
-                                                    role=roleAssignment,
-                                                    position=positionAssignment
-                                                    )
-            roles.remove(roleAssignment)                                    # Remove the role
-            positions.remove(positionAssignment)                            # Remove the position
-            print(playerList[playerID])
-    else:
-        print('Player count invalid: ' + str(playerCount))
-
-# Main loop for Secret Hitler
-# Handle display drawing
-async def mainLoop(context, tickRate: int):
-    gameBoardMessage = None
-    count = 0
-    while isLoaded:
-        if gameBoardMessage is None:
-            gameBoardMessage = await context.send('Here is the base message for SH')
-        else:
-            await gameBoardMessage.edit(content=str(count))
-            count += 1
-        await asyncio.sleep(tickRate)
-
-
 class AsciiShape(object):
 
     def __init__(self, x, y, width, height):
@@ -274,10 +274,6 @@ class Board:
             for w in range(shape.width):
                 self.grid[shape.y+h][shape.x+w] = shape.tile[h][w]
         return
-
-
-# while (gameActive):
-#     print(players)
 
 def setup(bot):
     global isLoaded

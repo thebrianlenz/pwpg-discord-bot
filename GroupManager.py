@@ -72,6 +72,7 @@ class GroupManager(commands.Cog):
                     )
     async def listGroupsCommand(self, context, groupName=None):
         messageToSend = ''
+        mc = MemberConverter()
         if (groupName is None) or (groupName is RESERVED_WORDS) or (groupName not in groupData): # Conditions to list all groups (no name given, reserved words, or isn't in groupData)
             messageToSend += 'There are currently ' + str(len(groupData)) + ' groups on PWPG!\n' 
             for n in groupData:
@@ -82,7 +83,9 @@ class GroupManager(commands.Cog):
             messageToSend += groupName + ' has ' + str(len(groupData[groupName]['member'])) + ' members.\n' # <groupName> has <number> members \n
             if groupData[groupName]['description'] != 'No Description': messageToSend += groupData[groupName]['description'] + '\n' # Add the description if the group has one
             for m in groupData[groupName]['member']: # Add each member
-                messageToSend += str(m) + '\n'
+                # messageToSend += str(m) + '\n'
+                member = await mc.convert(context, m)
+                messageToSend += member.name + '\n'
         else:
             print('how did this even happen?')
             messageToSend += 'THIS SHOULD NOT BE SEEN!?'
@@ -98,7 +101,7 @@ class GroupManager(commands.Cog):
                     pass_context=True
                     )
     async def listUsersGroups(self, context):
-        messageToSend = '```' + str(context.author) + ' is in:\n'
+        messageToSend = '```' + context.author.name + ' is in:\n'
         for groupName in groupData:
             if str(context.author) in groupData[groupName]['member']:
                 messageToSend += '\t' + groupName + ':\t Offline Ping: ' + str(groupData[groupName]['member'][str(context.author)]['offlinePing']) + '\n'
