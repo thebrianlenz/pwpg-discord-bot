@@ -85,7 +85,9 @@ class GroupManager(commands.Cog):
             messageToSend += '---' + '\n'
             for m in groupData[groupName]['member']: # Add each member
                 # messageToSend += str(m) + '\n'
+                print(m)
                 member = await mc.convert(context, m)
+                print('after convert')
                 messageToSend += member.name + '\n'
         else:
             print('how did this even happen?')
@@ -296,10 +298,10 @@ def joinGroup(context, name: str, offlinePing=True):
     global groupData
     userProps = {'offlinePing': offlinePing}
     if name in groupData:
-        if str(context.author) in groupData[name]['member']:
+        if str(context.author.id) in groupData[name]['member']:
             print('user already in group -> throw error')
             return False
-        groupData[name]['member'][str(context.author)] = userProps
+        groupData[name]['member'][str(context.author.id)] = userProps
         signalForGroupDataUpdate(True)
         return True
     else:
@@ -312,8 +314,8 @@ def joinGroup(context, name: str, offlinePing=True):
 def leaveGroup(context, name: str):
     global groupData
     if name in groupData:
-        if str(context.author) in groupData[name]['member']:
-            groupData[name]['member'].pop(str(context.author))
+        if str(context.author.id) in groupData[name]['member']:
+            groupData[name]['member'].pop(str(context.author.id))
             signalForGroupDataUpdate(True)
             return True
         else:
@@ -330,10 +332,10 @@ def leaveGroup(context, name: str):
 def updateUserGroupPreferences(context, name: str, properties: dict):
     global groupData
     if name in groupData:
-        if str(context.author) not in groupData[name]['member']:
+        if str(context.author.id) not in groupData[name]['member']:
             print('throw error, not in group')
             return False
-        groupData[name]['member'][str(context.author)] = properties
+        groupData[name]['member'][str(context.author.id)] = properties
         signalForGroupDataUpdate(True)
         return True
     else:
