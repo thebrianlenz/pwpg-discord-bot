@@ -1,6 +1,7 @@
 from discord.ext import commands
 from discord.ext.commands import Bot
 from discord.ext.commands import MemberConverter
+from discord.ext.commands import UserConverter
 from discord import Status
 import discord
 import asyncio
@@ -28,7 +29,7 @@ groupData = {}
 #       √ Cooldown on group creation
 #           Needs better error management, doesn't feel very clean
 #       Case insensitivity when join/leave
-#       Convert user data to the unique identifier (snowflake?) for save and eval
+#       √ Convert user data to the unique identifier (snowflake?) for save and eval
 #       Temporary group mute for a user
 #       √ Offline ping preference setting
 #           Needs a refactor for more/smarter preferences
@@ -72,7 +73,7 @@ class GroupManager(commands.Cog):
                     )
     async def listGroupsCommand(self, context, groupName=None):
         messageToSend = ''
-        mc = MemberConverter()
+        uc = UserConverter()
         if (groupName is None) or (groupName is RESERVED_WORDS) or (groupName not in groupData): # Conditions to list all groups (no name given, reserved words, or isn't in groupData)
             messageToSend += 'There are currently ' + str(len(groupData)) + ' groups on PWPG!\n'
             for n in groupData:
@@ -82,10 +83,10 @@ class GroupManager(commands.Cog):
         elif groupName in groupData:
             messageToSend += groupName + ' has ' + str(len(groupData[groupName]['member'])) + ' members.\n' # <groupName> has <number> members \n
             if groupData[groupName]['description'] != 'No Description': messageToSend += groupData[groupName]['description'] + '\n' # Add the description if the group has one
-            messageToSend += '---' + '\n'
+            messageToSend += '---------------' + '\n'
             for m in groupData[groupName]['member']: # Add each member
-                member = await mc.convert(context, m)
-                messageToSend += member.name + '\n'
+                member = await uc.convert(context, m)
+                messageToSend += '\t' + member.name + '\n'
         else:
             print('how did this even happen?')
             messageToSend += 'THIS SHOULD NOT BE SEEN!?'
