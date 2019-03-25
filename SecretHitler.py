@@ -41,6 +41,8 @@ gameActive = True
 playerList = {}
 lobbyList = []
 
+currentPosition = -1
+
 # For 5 or 6 players, Hitler knows who their Fascist is
 ROLE_DISTRIBUTION = {5:  {'Liberal': 3, 'Fascist': 1, 'Hitler': 1},
                      6:  {'Liberal': 4, 'Fascist': 1, 'Hitler': 1},
@@ -49,6 +51,19 @@ ROLE_DISTRIBUTION = {5:  {'Liberal': 3, 'Fascist': 1, 'Hitler': 1},
                      9:  {'Liberal': 5, 'Fascist': 3, 'Hitler': 1},
                      10: {'Liberal': 6, 'Fascist': 3, 'Hitler': 1}
                      }
+
+# Number emoji's
+NUMBER_EMOJI = {1: '1\N{combining enclosing keycap}',
+                2: '2\N{combining enclosing keycap}',
+                3: '3\N{combining enclosing keycap}',
+                4: '4\N{combining enclosing keycap}',
+                5: '5\N{combining enclosing keycap}',
+                6: '6\N{combining enclosing keycap}',
+                7: '7\N{combining enclosing keycap}',
+                8: '8\N{combining enclosing keycap}',
+                9: '9\N{combining enclosing keycap}',
+                10: '\N{keycap ten}'
+                }
 
 # add players to player list (lobby)
 # let players ready up
@@ -99,7 +114,7 @@ def printPlayerOrder():
     message = '```'
     for i in range(len(playerList)):
         print(playerList[i])
-        message += 'Player ' + str(i) + ': ' + playerList[i]['name'] + '\n'
+        message += 'Player ' + str(i+1) + ': ' + playerList[i]['name'] + '\n'
     message += '```'
     return message
 
@@ -132,6 +147,52 @@ def evaluateAndAssignPlayerRoles(context):
             positions.remove(positionAssignment)                            # Remove the position
     else:
         print('Player count invalid: ' + str(playerCount))
+
+def getCurrentPlayer():
+    return currentPosition
+
+def setCurrentPlayer(pos: int):
+    global currentPosition
+    currentPosition = pos
+    return currentPosition
+
+# Advancing the current player happens first, logic occurs after to see if it's acceptable
+def advanceAndGetCurrentPlayer():
+    setCurrentPlayer(currentPosition+1)
+
+    if (currentPosition) in range(len(playerList)):
+        if not playerList[currentPosition]['dead']:
+            print('in bounds and not dead')
+            print('new current is ' + str(currentPosition))
+            return currentPosition
+        else:
+            print('current is dead, advance')
+            advanceAndGetCurrentPlayer()
+    else:
+        print('reached the end of the player list')
+        setCurrentPlayer(-1) # reset to the start of the list
+        advanceAndGetCurrentPlayer()
+
+
+# start a president selection
+async def prepareChancellorSelectionPrompt(context):
+    # send a DM to presidential candidate
+    # prompt with all players in the game (including availability (dead or term limit))
+    # place reactions for easy selection
+
+    msg = await context.send('Prompting for candidate select')
+    for i in range(len(playerList)):
+        await msg.add_reaction(NUMBER_EMOJI[i+1])
+
+    await waitForReaction(context, msg)
+
+# wait for the reaction to be sent by the pres candidate
+# delete the entire message after vote is received
+async def waitForReaction(context, msg):
+    def check(reaction, user):
+        return user != msg.author
+    reaction, user = await context.bot.wait_for('reaction_add', check=check)
+    await context.send('We caught a ' + str(reaction.emoji) + ' sent by ' + user.name)
 
 # Main loop for Secret Hitler
 # Handle display drawing
@@ -217,6 +278,15 @@ class SecretHitler(commands.Cog, command_attrs=dict(hidden=True)):
     async def endSecretHitler(self, context):
         global isLoaded
         isLoaded = False
+
+    @commands.command(name='next')
+    async def nextPlayer(self, context):
+        advanceAndGetCurrentPlayer()
+        await context.send(playerList[currentPosition]['name'])
+
+    @commands.command(name='reset')
+    async def resetCommand(self, context):
+        await prepareChancellorSelectionPrompt(context)
 
 class AsciiShape(object):
 
