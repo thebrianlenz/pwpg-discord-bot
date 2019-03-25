@@ -58,14 +58,15 @@ ROLE_DISTRIBUTION = {5:  {'Liberal': 3, 'Fascist': 1, 'Hitler': 1},
 # assign first president
 
 # Makes a player, with assosciated properties
-def makePlayerProps(name='Empty', party='Unassigned', role='Unassigned', position=-1, ready=False, tl=False, dead=False):
-    props = {'Name': name,
-             'Party': party,
-             'Role': role,
-             'Position': position,
-             'Ready': ready,
-             'Term-Limited': tl,
-             'Dead': dead
+def makePlayerProps(name='Empty', uniqID='-1', party='Unassigned', role='Unassigned', position=-1, ready=False, tl=False, dead=False):
+    props = {'name': name,
+             'id': uniqID,
+             'party': party,
+             'role': role,
+             'position': position,
+             'ready': ready,
+             'term-limited': tl,
+             'dead': dead
              }
     return props
 
@@ -87,18 +88,26 @@ def readyActiveLobby(context):
     else:
         print('Player not in lobby')
 
-def _makeRoleListForAssignment(roleLayout: dict):
+def makeRoleListForAssignment(roleLayout: dict):
     roleList = []
     for i in roleLayout:
         for _ in range(roleLayout[i]):
             roleList.append(i)
     return roleList
 
+def printPlayerOrder():
+    message = '```'
+    for i in range(len(playerList)):
+        print(playerList[i])
+        message += 'Player ' + str(i) + ': ' + playerList[i]['name'] + '\n'
+    message += '```'
+    return message
+
 # Count the players in lobby and assign all to the playerList with role, party, and position
 def evaluateAndAssignPlayerRoles(context):
     playerCount = len(lobbyList)                                            # Helper for player count
     if playerCount in range(5, 10+1):                                       # Check for valid number of players, 5-10
-        roles = _makeRoleListForAssignment(ROLE_DISTRIBUTION[playerCount])  # Assign the appropriate role distribution
+        roles = makeRoleListForAssignment(ROLE_DISTRIBUTION[playerCount])  # Assign the appropriate role distribution
         random.shuffle(roles)                                               # Shuffle to feel better
         positions = list(range(playerCount))                                # Make a position list of the total player count
         
@@ -111,16 +120,16 @@ def evaluateAndAssignPlayerRoles(context):
             
             # Make and assign the player to playerList
             user = context.bot.get_user(playerID)
-            if user is None: name = 'Fake Player: ' + str(playerID)
+            if user is None: name = 'Fake ' + str(playerID)
             else: name = user.name
-            playerList[playerID] = makePlayerProps(name=name,
+            playerList[positionAssignment] = makePlayerProps(name=name,
+                                                    uniqID=playerID,
                                                     party=partyAssignment,
                                                     role=roleAssignment,
                                                     position=positionAssignment
                                                     )
             roles.remove(roleAssignment)                                    # Remove the role
             positions.remove(positionAssignment)                            # Remove the position
-            print(playerList[playerID])
     else:
         print('Player count invalid: ' + str(playerCount))
 
@@ -186,7 +195,7 @@ class SecretHitler(commands.Cog, command_attrs=dict(hidden=True)):
     @commands.command(name='joinSH')
     async def makePlayer(self, context):
         joinActiveLobby(context)
-        makeFakePlayers(context, 9)
+        makeFakePlayers(context, 4)
         print(lobbyList)
 
     @commands.command(name='playerlist')
@@ -196,6 +205,7 @@ class SecretHitler(commands.Cog, command_attrs=dict(hidden=True)):
     @commands.command(name='role')
     async def assignRole(self, context):
         evaluateAndAssignPlayerRoles(context)
+        await context.send(printPlayerOrder())
 
     @commands.command(name='startsh')
     async def startSecretHitler(self, context):
