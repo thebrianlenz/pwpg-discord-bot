@@ -31,10 +31,14 @@ async def on_command_error(context, error):
     if isinstance(error, commands.CommandOnCooldown):
         print(error)
         return
+    if isinstance(error, commands.CheckFailure):
+        print(error)
+        print(context.author.name)
+        return
 
     print (error)
 
-    await context.send_help(context.command)
+    await context.send_help('There was a problem with: ' + context.command.name)
 
     # Some other error, let the cooldown reset
     context.command.reset_cooldown(context)

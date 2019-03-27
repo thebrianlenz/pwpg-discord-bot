@@ -12,6 +12,9 @@
             },
             "221345797059510272": {
                 "offlinePing": false
+            },
+            "226076608618823680": {
+                "offlinePing": true
             }
         },
         "description": "Apex Legends"
@@ -70,6 +73,12 @@
             },
             "221345797059510272": {
                 "offlinePing": false
+            },
+            "203239014331973632": {
+                "offlinePing": true
+            },
+            "98315403670880256": {
+                "offlinePing": false
             }
         },
         "description": "Trouble in Terrorist Town"
@@ -118,6 +127,9 @@
             },
             "126172702812798986": {
                 "offlinePing": false
+            },
+            "226076608618823680": {
+                "offlinePing": true
             }
         },
         "description": "Warhammer 40k"

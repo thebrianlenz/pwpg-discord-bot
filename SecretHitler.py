@@ -91,6 +91,7 @@ def joinActiveLobby(context):
     lobbyList.append(context.author.id)
 
 # TEMPORARY HELPER FOR TESTING
+# TODO REMOVE
 def makeFakePlayers(context, num: int):
     for i in range(num):
         lobbyList.append(1 + i)
@@ -110,6 +111,8 @@ def makeRoleListForAssignment(roleLayout: dict):
             roleList.append(i)
     return roleList
 
+# TEMPORARY HELPER FOR TESTING
+# TODO REMOVE
 def printPlayerOrder():
     message = '```'
     for i in range(len(playerList)):
@@ -147,9 +150,6 @@ def evaluateAndAssignPlayerRoles(context):
             positions.remove(positionAssignment)                            # Remove the position
     else:
         print('Player count invalid: ' + str(playerCount))
-
-def getCurrentPlayer():
-    return currentPosition
 
 def setCurrentPlayer(pos: int):
     global currentPosition
