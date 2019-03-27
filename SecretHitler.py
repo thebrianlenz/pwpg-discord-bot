@@ -96,21 +96,6 @@ def makeFakePlayers(context, num: int):
     for i in range(num):
         lobbyList.append(1 + i)
 
-# Sets the author in the active lobby to 'ready'
-# Author must already be in lobby
-def readyActiveLobby(context):
-    if context.author.id in playerList:
-        playerList[context.author.id]['Ready'] = True
-    else:
-        print('Player not in lobby')
-
-def makeRoleListForAssignment(roleLayout: dict):
-    roleList = []
-    for i in roleLayout:
-        for _ in range(roleLayout[i]):
-            roleList.append(i)
-    return roleList
-
 # TEMPORARY HELPER FOR TESTING
 # TODO REMOVE
 def printPlayerOrder():
@@ -121,11 +106,28 @@ def printPlayerOrder():
     message += '```'
     return message
 
+# Sets the author in the active lobby to 'ready'
+# Author must already be in lobby
+def readyActiveLobby(context):
+    if context.author.id in playerList:
+        playerList[context.author.id]['Ready'] = True
+    else:
+        print('Player not in lobby')
+
+# Make a temporary list for assigning roles to each player
+# Takes in dictionary of Role Count -- ROLE_DISTRIBUTION[i]
+def makeRoleListForAssignment(roleLayout: dict):
+    roleList = []
+    for i in roleLayout:
+        for _ in range(roleLayout[i]):
+            roleList.append(i)
+    return roleList
+
 # Count the players in lobby and assign all to the playerList with role, party, and position
 def evaluateAndAssignPlayerRoles(context):
     playerCount = len(lobbyList)                                            # Helper for player count
     if playerCount in range(5, 10+1):                                       # Check for valid number of players, 5-10
-        roles = makeRoleListForAssignment(ROLE_DISTRIBUTION[playerCount])  # Assign the appropriate role distribution
+        roles = makeRoleListForAssignment(ROLE_DISTRIBUTION[playerCount])   # Assign the appropriate role distribution
         random.shuffle(roles)                                               # Shuffle to feel better
         positions = list(range(playerCount))                                # Make a position list of the total player count
         
@@ -146,11 +148,13 @@ def evaluateAndAssignPlayerRoles(context):
                                                     role=roleAssignment,
                                                     position=positionAssignment
                                                     )
-            roles.remove(roleAssignment)                                    # Remove the role
-            positions.remove(positionAssignment)                            # Remove the position
+            roles.remove(roleAssignment)                                    # Remove the role from temporary list
+            positions.remove(positionAssignment)                            # Remove the position from temporary list
     else:
         print('Player count invalid: ' + str(playerCount))
 
+# Set the global var of current player
+# Helper func so global doesn't need to be declared every time player is changed
 def setCurrentPlayer(pos: int):
     global currentPosition
     currentPosition = pos
@@ -172,7 +176,6 @@ def advanceAndGetCurrentPlayer():
         print('reached the end of the player list')
         setCurrentPlayer(-1) # reset to the start of the list
         advanceAndGetCurrentPlayer()
-
 
 # start a president selection
 async def prepareChancellorSelectionPrompt(context):
@@ -217,18 +220,6 @@ class SecretHitler(commands.Cog, command_attrs=dict(hidden=True)):
         b = Board(50, 10)
         b.clearBoard('X')
 
-        # shape = AsciiShape(0, 0, 5, 5)
-        # shape.fillLetterToShape('x')
-        # b.drawShape(shape)
-
-        # shape2 = AsciiShape(3, 3, 5, 5)
-        # shape2.fillLetterToShape('y')
-        # b.drawShape(shape2)
-
-        # shape3 = AsciiShape(2, 1, 5, 2)
-        # shape3.stringToShape('teststests')
-        # b.drawShape(shape3)
-
         shapeCard = AsciiShape(5, 5, 5, 4)
         shapeCard.stringToShape(b.CARD_SPRITE)
         b.drawShape(shapeCard)
@@ -249,7 +240,6 @@ class SecretHitler(commands.Cog, command_attrs=dict(hidden=True)):
         shapeCard.stringToShape(b.CARD_SPRITE)
         b.drawShape(shapeCard)
         
-
         for line in b.assemblePage():
             await context.send(line)
 
@@ -359,7 +349,6 @@ def setup(bot):
     global isLoaded
     isLoaded = True
     bot.add_cog(SecretHitler(bot))
-    #bot.loop.create_task(mainLoop(bot.context, TICK_RATE))
 
 def teardown(bot):
     global isLoaded
