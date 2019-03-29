@@ -22,7 +22,7 @@ groupData = {}
 # members: [listOfMembers]
 # groupName: {description, members}
 
-# TODO: √ Remove the 'No Description' message on command repsonses
+#       √ Remove the 'No Description' message on command repsonses
 #       Delete group confirmation
 #       √ FIXME: List all of a single user's groups
 #       √ Cooldown on group creation
@@ -109,7 +109,7 @@ class GroupManager(commands.Cog):
         await context.send(messageToSend)
 
     # Joins an existing group and writes to file
-    # TODO error calls?
+    #  error calls?
     @commands.command(name='sub',
                     description='Subscribe to a group. Belonging ' + 'to a group will include you in pings.\n' + 'Use [list] to find existing groups.',
                     brief='Subscribe to a group.',
@@ -251,7 +251,7 @@ def signalForGroupDataUpdate(v: bool):
 
 # Create a group entry with an optional name
 # Returns false if group exists
-# TODO error throws
+#  error throws
 def addGroup(context, name: str, description=None):
     global groupData
     if name in groupData:
@@ -266,7 +266,7 @@ def addGroup(context, name: str, description=None):
 
 # Removes entire entry for a group
 # Returns false if group doesn't exist
-# TODO error throws
+#  error throws
 def removeGroup(name: str):
     global groupData
     if name in groupData.keys():
@@ -279,7 +279,7 @@ def removeGroup(name: str):
 
 # Edits an existing group's description
 # Returns false if the group doesn't exist
-# TODO error throws
+#  error throws
 def editGroupDescription(name: str, description: str):
     global groupData
     if name in groupData:
@@ -292,7 +292,7 @@ def editGroupDescription(name: str, description: str):
 
 # Add author to a group
 # Returns false if no matching group name or in group already
-# TODO error throws
+#  error throws
 def joinGroup(context, name: str, offlinePing=True):
     global groupData
     userProps = {'offlinePing': offlinePing}
@@ -309,7 +309,7 @@ def joinGroup(context, name: str, offlinePing=True):
 
 # Remove author from a group
 # Returns false if not in the group, or if the group doesn't exist
-# TODO error throws
+#  error throws
 def leaveGroup(context, name: str):
     global groupData
     if name in groupData:
@@ -326,8 +326,8 @@ def leaveGroup(context, name: str):
 
 # Replace user preferences for a group with dictionary
 # Returns false if not in group or no matching group
-# TODO throw error if no dict provided (missing arg)
-# TODO error throws
+#  throw error if no dict provided (missing arg)
+#  error throws
 def updateUserGroupPreferences(context, name: str, properties: dict):
     global groupData
     if name in groupData:
@@ -350,6 +350,8 @@ def writeGroupData():
             signalForGroupDataUpdate(False)
             print('Group Data Written')
             return True
+    return None
+
 
 # Read GROUP_FILE and assign to groupData dict, return groupData
 def readGroupData():
@@ -358,6 +360,8 @@ def readGroupData():
         groupData = json.load(f)
         print('Group Data Loaded')
         return groupData
+    return None
+
 
 def setup(bot):
     global isLoaded
