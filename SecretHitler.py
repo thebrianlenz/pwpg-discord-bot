@@ -241,7 +241,7 @@ playerList = {}
 lobbyList = []
 cardManager = CardManager(17)
 
-currentPosition = 0
+currentPosition = -1
 
 # For 5 or 6 players, Hitler knows who their Fascist is
 ROLE_DISTRIBUTION = {5:  {'Liberal': 3, 'Fascist': 1, 'Hitler': 1},
@@ -253,17 +253,17 @@ ROLE_DISTRIBUTION = {5:  {'Liberal': 3, 'Fascist': 1, 'Hitler': 1},
                      }
 
 # Number emoji's
-NUMBER_EMOJI = {1: '1\N{combining enclosing keycap}',
-                2: '2\N{combining enclosing keycap}',
-                3: '3\N{combining enclosing keycap}',
-                4: '4\N{combining enclosing keycap}',
-                5: '5\N{combining enclosing keycap}',
-                6: '6\N{combining enclosing keycap}',
-                7: '7\N{combining enclosing keycap}',
-                8: '8\N{combining enclosing keycap}',
-                9: '9\N{combining enclosing keycap}',
-                10: '\N{keycap ten}'
-                }
+NUMBER_EMOJI = ['1\N{combining enclosing keycap}',
+                '2\N{combining enclosing keycap}',
+                '3\N{combining enclosing keycap}',
+                '4\N{combining enclosing keycap}',
+                '5\N{combining enclosing keycap}',
+                '6\N{combining enclosing keycap}',
+                '7\N{combining enclosing keycap}',
+                '8\N{combining enclosing keycap}',
+                '9\N{combining enclosing keycap}',
+                '\N{keycap ten}'
+                ]
 
 # let players ready up
 
@@ -363,7 +363,7 @@ def advanceAndGetCurrentPlayer():
             advanceAndGetCurrentPlayer()
     else:
         print('reached the end of the player list')
-        setCurrentPlayer(0) # reset to the start of the list
+        setCurrentPlayer(-1) # reset to the start of the list
         advanceAndGetCurrentPlayer()
 
 # start a president selection
@@ -379,11 +379,13 @@ async def prepareChancellorSelectionPrompt(context):
             prompt += '\t-\t DEAD'
         if playerList[i]['term-limited']:
             prompt += '\t-\t Term-Limited'
+        if playerList[i]['position'] is currentPosition:
+            prompt += '\t-\t President Elect'
 
     msg = await context.send(prompt)
     
     for i in range(len(playerList)):
-        await msg.add_reaction(NUMBER_EMOJI[i+1])
+        await msg.add_reaction(NUMBER_EMOJI[i])
 
     return msg
 
@@ -396,13 +398,14 @@ async def prepareChancellorSelectionPrompt(context):
 async def waitForChancellorSelectionReaction(context, msg):
     # Ignore the bot reactions, and ensure the reaction is a number selection
     def check(reaction, user):
-        return user != msg.author and reaction.emoji in NUMBER_EMOJI.values()
+        return user != msg.author and reaction.emoji in NUMBER_EMOJI
     print('Waiting for reaction')
     reaction, user = await context.bot.wait_for('reaction_add', check=check)
 
     # Iterate through keys to determine actual number being represented
     # Check if that player is a valid selection for Chancellor
-    for i in NUMBER_EMOJI.keys():
+    for i in range(len(NUMBER_EMOJI)):
+        print(str(i))
         if NUMBER_EMOJI[i] == reaction.emoji:
             if i is currentPosition:
                 await msg.remove_reaction(reaction.emoji, context.author)
@@ -428,7 +431,7 @@ async def initVotingSequence(context):
     msg = await prepareChancellorSelectionPrompt(context)
     selection = await waitForChancellorSelectionReaction(context, msg)
 
-    await context.send('Candidate Number ' + str(selection) + ' selected')
+    await context.send('Candidate Number ' + str(selection + 1) + ' selected')
 
 
 
