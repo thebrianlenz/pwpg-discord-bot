@@ -84,6 +84,15 @@ class SecretHitler(commands.Cog, command_attrs=dict(hidden=True)):
     async def dealCards(self, context):
         print(cardManager.drawCards(3))
 
+
+    #HELPER COMMAND
+    @commands.command(name='testsh')
+    async def testingSecretHitlerCommand(self, context):
+        joinActiveLobby(context)
+        makeFakePlayers(context, 4)
+        evaluateAndAssignPlayerRoles(context)
+        await context.send(printPlayerOrder())
+
 class AsciiShape(object):
 
     def __init__(self, x, y, width, height):
@@ -232,7 +241,7 @@ playerList = {}
 lobbyList = []
 cardManager = CardManager(17)
 
-currentPosition = -1
+currentPosition = 0
 
 # For 5 or 6 players, Hitler knows who their Fascist is
 ROLE_DISTRIBUTION = {5:  {'Liberal': 3, 'Fascist': 1, 'Hitler': 1},
@@ -303,7 +312,6 @@ def makeRoleListForAssignment(roleLayout: dict):
             roleList.append(i)
     return roleList
 
-
 # Count the players in lobby and assign all to the playerList with role, party, and position
 def evaluateAndAssignPlayerRoles(context):
     playerCount = len(lobbyList)                                            # Helper for player count
@@ -355,7 +363,7 @@ def advanceAndGetCurrentPlayer():
             advanceAndGetCurrentPlayer()
     else:
         print('reached the end of the player list')
-        setCurrentPlayer(-1) # reset to the start of the list
+        setCurrentPlayer(0) # reset to the start of the list
         advanceAndGetCurrentPlayer()
 
 # start a president selection
@@ -363,33 +371,62 @@ def advanceAndGetCurrentPlayer():
 async def prepareChancellorSelectionPrompt(context):
     # send a DM to presidential candidate
     # prompt with all players in the game (including availability (dead or term limit))
-    # place reactions for easy selection
 
-    msg = await context.send('Prompting for candidate select')
+    prompt = 'Please select your nomination for chancellor'
+    for i in range(len(playerList)):
+        prompt += '\n' + playerList[i]['name']
+        if playerList[i]['dead']:
+            prompt += '\t-\t DEAD'
+        if playerList[i]['term-limited']:
+            prompt += '\t-\t Term-Limited'
+
+    msg = await context.send(prompt)
+    
     for i in range(len(playerList)):
         await msg.add_reaction(NUMBER_EMOJI[i+1])
 
     return msg
 
-# wait for the reaction to be sent by the pres candidate
-# delete the entire message after vote is received
-# need to add confirmation for selection
-# returns position selection
-async def waitForReaction(context, msg):
+
+# Handles evaluation of the Chancellor selection
+# Takes in a numbered reaction from NUMBER_EMOJI
+# Should be used inside a DM
+# Removes the voting prompt after a valid selection
+# ::FIX:: need to add confirmation for selection
+async def waitForChancellorSelectionReaction(context, msg):
     # Ignore the bot reactions, and ensure the reaction is a number selection
     def check(reaction, user):
         return user != msg.author and reaction.emoji in NUMBER_EMOJI.values()
+    print('Waiting for reaction')
     reaction, user = await context.bot.wait_for('reaction_add', check=check)
-    #await context.send('We caught a ' + str(reaction.emoji) + ' sent by ' + user.name)
 
     # Iterate through keys to determine actual number being represented
+    # Check if that player is a valid selection for Chancellor
     for i in NUMBER_EMOJI.keys():
         if NUMBER_EMOJI[i] == reaction.emoji:
-            return i
+            if i is currentPosition:
+                await msg.remove_reaction(reaction.emoji, context.author)
+                await context.send('You can\'t elect yourself! Please vote again.', delete_after=5)
+                return await waitForChancellorSelectionReaction(context, msg)
+            elif i is playerList[i]['dead']:
+                await msg.remove_reaction(reaction.emoji, context.author)
+                await context.send('That player is dead! Please vote again.', delete_after=5)
+                return await waitForChancellorSelectionReaction(context, msg)
+            elif i is playerList[i]['term-limited']:
+                await msg.remove_reaction(reaction.emoji, context.author)
+                await context.send('That player is term-limited for this turn. Please vote again.', delete_after=5)
+                return await waitForChancellorSelectionReaction(context, msg)
+            else:
+                await msg.delete()
+                return i
+    else:
+        await context.send('Something has gone horribly wrong')
+        return None
 
 async def initVotingSequence(context):
+    print(str(advanceAndGetCurrentPlayer()))
     msg = await prepareChancellorSelectionPrompt(context)
-    selection = await waitForReaction(context, msg)
+    selection = await waitForChancellorSelectionReaction(context, msg)
 
     await context.send('Candidate Number ' + str(selection) + ' selected')
 
