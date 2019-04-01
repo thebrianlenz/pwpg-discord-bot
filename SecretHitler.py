@@ -205,6 +205,21 @@ class CardManager():
         self.dicardPile.extend(self.hand)
         return gameBoard
 
+class PlayerManager():
+    currentPosition = -1
+    playerList = {}
+    lobbyList = []
+
+class Player(object):
+    name = 'Empty'
+    id = -1
+    party = 'Unassigned'
+    role = 'Unassigned'
+    position = -1
+    ready = False
+    term_limited = False
+    dead = False
+
 # Soon
 '''
 display "board"
@@ -389,11 +404,11 @@ async def prepareChancellorSelectionPrompt(context):
 
     return msg
 
-
 # Handles evaluation of the Chancellor selection
-# Takes in a numbered reaction from NUMBER_EMOJI
+# Takes argument of the chancellorSelectionPrompt message
 # Should be used inside a DM
 # Removes the voting prompt after a valid selection
+# Returns position of the selected Chancellor as an int
 # ::FIX:: need to add confirmation for selection
 async def waitForChancellorSelectionReaction(context, msg):
     # Ignore the bot reactions, and ensure the reaction is a number selection
@@ -425,6 +440,15 @@ async def waitForChancellorSelectionReaction(context, msg):
     else:
         await context.send('Something has gone horribly wrong')
         return None
+
+async def prepareChancellorVotingPrompt(context, chancellorPos: int):
+    # send PMs to all alive players
+    # prompt for ja or nein
+    # return a list of all messages used
+
+    prompt = 'Voting: ' + str(currentPosition) + '\t' + str(chancellorPos)
+    await context.send(prompt)
+    return msgList
 
 async def initVotingSequence(context):
     print(str(advanceAndGetCurrentPlayer()))
