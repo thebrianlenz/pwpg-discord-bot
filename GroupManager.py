@@ -41,6 +41,7 @@ class GroupUserNotInGroupError(commands.BadArgument): pass
 #           Needs a refactor for more/smarter preferences
 #       BUG the write loop should be refactored back to on-call writing?
 #           File writes seem to miss at points, unsure how it behaves on a lost connection
+#       Expand on error handling to inclue more information (command causing the error, etc)
 class GroupManager(commands.Cog):
 
     def __init__(self, bot: Bot):
@@ -48,11 +49,11 @@ class GroupManager(commands.Cog):
         readGroupData()
 
     async def cog_command_error(self, context, error):
-        if hasattr(context.command, 'on_error'): return
+        if hasattr(context.command, 'on_error'): return # ignore anything with a individual local error handler
 
         # Marks the context that we are handling the error
         setattr(context, 'error_being_handled', True)
-        print(error)
+
         # Taking care of the error
         if isinstance(error, commands.CommandOnCooldown):
             await context.message.add_reaction('⌛')
@@ -72,8 +73,7 @@ class GroupManager(commands.Cog):
             await context.send('You are not in group `' + str(error) + '`. Use $sub <groupName> to join a group, or $mysubs to see all of your memberships.') # Remove hardcoding
             return
 
-        # Finished handling our errors, anything left will go to the generic
-        # handler
+        # Finished handling our errors, anything left will go to the generic handler in pwpg-bot
         setattr(context, 'error_being_handled', False)
 
     @commands.command(name='jsdump', hidden=True)
