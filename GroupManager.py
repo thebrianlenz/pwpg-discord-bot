@@ -123,13 +123,12 @@ class GroupManager(commands.Cog):
     async def listUsersGroups(self, context):
         messageToSend = '```' + context.author.display_name + ' is in:\n'
         for groupName in groupData:
-            if str(context.author) in groupData[groupName]['member']:
-                messageToSend += '\t' + groupName + ':\t Offline Ping: ' + str(groupData[groupName]['member'][str(context.author)]['offlinePing']) + '\n'
+            if str(context.author.id) in groupData[groupName]['member']:
+                messageToSend += '\t' + groupName + ':\t Offline Ping: ' + str(groupData[groupName]['member'][str(context.author.id)]['offlinePing']) + '\n'
         messageToSend += '```'
         await context.send(messageToSend)
 
     # Joins an existing group and writes to file
-    #  error calls?
     @commands.command(name='sub',
                     description='Subscribe to a group. Belonging ' + 'to a group will include you in pings.\n' + 'Use [list] to find existing groups.',
                     brief='Subscribe to a group.',
@@ -138,8 +137,6 @@ class GroupManager(commands.Cog):
     async def joinGroupCommand(self, context, groupName, offlinePing=False):
         if joinGroup(context, groupName, offlinePing):
             await context.send('`' + context.author.display_name + '` has been added to `' + groupName + '`')
-        else:
-            await context.send('`' + context.author.display_name + '` could not be added to `' + groupName + '`')
 
     # Leaves a group the user is a member of
     @commands.command(name='unsub',
@@ -151,8 +148,6 @@ class GroupManager(commands.Cog):
     async def leaveGroupCommand(self, context, groupName):
         if leaveGroup(context, groupName):
             await context.send('`' + context.author.display_name + '` has left `' + groupName + '`')
-        else:
-            await context.send('`' + context.author.display_name + '` could not leave `' + groupName + '`')
 
     # Ping a group with an optional message
     # Check if user is online, consult property
@@ -181,8 +176,7 @@ class GroupManager(commands.Cog):
                     print('no offline ping and they aren\'t online')
             return True
         else:
-            print('ping error -> no group')
-            return False
+            raise GroupDoesNotExistError(groupName)
 
     # Creates a non-existing group
     # Write to GROUP_FILE
@@ -195,9 +189,6 @@ class GroupManager(commands.Cog):
     async def createGroupCommand(self, context, groupName, *, description=None):
         if addGroup(context, groupName, description):
             await context.send('Group `' + groupName + '` has been created.')
-        else:
-            context.command.reset_cooldown(context)
-            print('create group failed')
 
     # Deletes an existing group
     # Write to GROUP_FILE
@@ -211,8 +202,6 @@ class GroupManager(commands.Cog):
     async def deleteGroupCommand(self, context, groupName):
         if removeGroup(groupName):
             await context.send('Group `' + groupName + '` has been deleted.')
-        else:
-            print('delete group failed')
 
     # Edits an existing group's description
     @commands.cooldown(1, 30, commands.BucketType.user)
@@ -225,9 +214,11 @@ class GroupManager(commands.Cog):
         if description is None:
             if editGroupDescription(groupName, 'No Description'):
                 await context.send('The description for `' + groupName + '` has been removed.')
+            return
         else:
             if editGroupDescription(groupName, description):
                 await context.send('The description for `' + groupName + '` has been updated.')
+            return
 
     # Edit a user's group preference
     @commands.command(name='myprefs',
@@ -251,23 +242,17 @@ class GroupManager(commands.Cog):
         # if not isinstance(context.channel, (discord.DMChannel,
         # discord.GroupChannel)):
         await context.message.delete()
-        await context.send('The word "waffle" first appears in the English language in 1725', delete_after=10)
+        await context.send('The word "waffle" first appears in the English language in 1725', delete_after=180)
 
 
 # Main loop for the Group Manager to operate under
 # Checks for changes to the groupData and writes when needed
 async def groupManagerLoop(tickRate: int):
-    while(isLoaded):
-        if writeGroupData():
-            return
-        await asyncio.sleep(tickRate)
-
-# Update data bool
-# Simple helper
-def signalForGroupDataUpdate(v: bool):
-    global groupDataHasChanged
-    groupDataHasChanged = v
-    return groupDataHasChanged
+    #while(isLoaded):
+    #    if writeGroupData():
+    #        return
+    #    await asyncio.sleep(tickRate)
+    pass
 
 # Create a group entry with an optional name
 # Returns false if group exists
@@ -280,7 +265,7 @@ def addGroup(context, name: str, description=None):
         if description is None: description = 'No Description'
         groupData[name] = {'member':{}, 'description': description}
         joinGroup(context, name)
-        signalForGroupDataUpdate(True)
+        writeGroupData()
         return True
 
 # Removes entire entry for a group
@@ -289,7 +274,7 @@ def removeGroup(name: str):
     global groupData
     if name in groupData.keys():
         groupData.pop(name)
-        signalForGroupDataUpdate(True)
+        writeGroupData()
         return True
     else:
         raise GroupDoesNotExistError(error)
@@ -301,7 +286,7 @@ def editGroupDescription(name: str, description: str):
     global groupData
     if name in groupData:
         groupData[name]['description'] = description
-        signalForGroupDataUpdate(True)
+        writeGroupData()
         return True
     else:
         raise GroupDoesNotExistError(name)
@@ -317,7 +302,7 @@ def joinGroup(context, name: str, offlinePing=True):
             raise GroupUserAlreadyInGroupError(name)
             return False
         groupData[name]['member'][str(context.author.id)] = userProps
-        signalForGroupDataUpdate(True)
+        writeGroupData()
         return True
     else:
         raise GroupDoesNotExistError(name)
@@ -330,7 +315,7 @@ def leaveGroup(context, name: str):
     if name in groupData:
         if str(context.author.id) in groupData[name]['member']:
             groupData[name]['member'].pop(str(context.author.id))
-            signalForGroupDataUpdate(True)
+            writeGroupData()
             return True
         else:
             raise GroupUserNotInGroupError(name)
@@ -349,7 +334,7 @@ def updateUserGroupPreferences(context, name: str, properties: dict):
             print('throw error, not in group')
             return False
         groupData[name]['member'][str(context.author.id)] = properties
-        signalForGroupDataUpdate(True)
+        writeGroupData()
         return True
     else:
         raise GroupDoesNotExistError(name)
@@ -358,12 +343,10 @@ def updateUserGroupPreferences(context, name: str, properties: dict):
 # Write groupData dict to GROUP_FILE, return True if sucessful
 # Writes every TICK_RATE inside groupManagerLoop(int)
 def writeGroupData():
-    if groupDataHasChanged:
-        with open(GROUP_FILE, 'w') as f:
-            json.dump(groupData, f, indent=4)
-            signalForGroupDataUpdate(False)
-            print('Group Data Written')
-            return True
+    with open(GROUP_FILE, 'w') as f:
+        json.dump(groupData, f, indent=4)
+        print('Group Data Written')
+        return True
     return None
 
 # Read GROUP_FILE and assign to groupData dict, return groupData
@@ -380,7 +363,7 @@ def setup(bot):
     global isLoaded
     isLoaded = True
     bot.add_cog(GroupManager(bot))
-    bot.loop.create_task(groupManagerLoop(TICK_RATE))
+    #bot.loop.create_task(groupManagerLoop(TICK_RATE))
 
 def teardown(bot):
     global isLoaded
