@@ -15,6 +15,12 @@ RESERVED_WORDS = ['group', 'groups', 'all']
 TICK_RATE = 1
 
 groupData = {}
+
+class GroupDoesNotExistError(commands.BadArgument): pass
+class GroupAlreadyExistsError(commands.BadArgument): pass
+class GroupUserAlreadyInGroupError(commands.BadArgument): pass
+class GroupUserNotInGroupError(commands.BadArgument): pass
+
 #temp = test['group']['group1']['members']
 
 #groupsJSON = {groupName: {desc:desc, members: [list]}}
@@ -33,6 +39,8 @@ groupData = {}
 #       Temporary group mute for a user
 #       √ Offline ping preference setting
 #           Needs a refactor for more/smarter preferences
+#       BUG the write loop should be refactored back to on-call writing?
+#           File writes seem to miss at points, unsure how it behaves on a lost connection
 class GroupManager(commands.Cog):
 
     def __init__(self, bot: Bot):
@@ -44,12 +52,24 @@ class GroupManager(commands.Cog):
 
         # Marks the context that we are handling the error
         setattr(context, 'error_being_handled', True)
-
+        print(error)
         # Taking care of the error
         if isinstance(error, commands.CommandOnCooldown):
             await context.message.add_reaction('⌛')
             await asyncio.sleep(error.retry_after)
             await context.message.remove_reaction('⌛', context.bot.user)
+            return
+        if isinstance(error, GroupAlreadyExistsError):
+            await context.send('The group `' + str(error) + '` already exists! Use $list to see existing groups.') # Remove $list hardcoding
+            return
+        if isinstance(error, GroupDoesNotExistError):
+            await context.send('The group `' + str(error) + '` does not exist! Use $create <groupName> to create a new group.') # Remove hardcoding
+            return
+        if isinstance(error, GroupUserAlreadyInGroupError):
+            await context.send('You are already in `' + str(error) + '`. There is no need to join again! Use $mysubs to see all of your group memberships.') # Remove hardcoding
+            return
+        if isinstance(error, GroupUserNotInGroupError):
+            await context.send('You are not in group `' + str(error) + '`. Use $sub <groupName> to join a group, or $mysubs to see all of your memberships.') # Remove hardcoding
             return
 
         # Finished handling our errors, anything left will go to the generic
@@ -232,7 +252,7 @@ class GroupManager(commands.Cog):
         # discord.GroupChannel)):
         await context.message.delete()
         await context.send('The word "waffle" first appears in the English language in 1725', delete_after=10)
-    
+
 
 # Main loop for the Group Manager to operate under
 # Checks for changes to the groupData and writes when needed
@@ -251,11 +271,10 @@ def signalForGroupDataUpdate(v: bool):
 
 # Create a group entry with an optional name
 # Returns false if group exists
-#  error throws
 def addGroup(context, name: str, description=None):
     global groupData
     if name in groupData:
-        print('group exists -> throw error')
+        raise GroupAlreadyExistsError(name)
         return False
     else:
         if description is None: description = 'No Description'
@@ -266,7 +285,6 @@ def addGroup(context, name: str, description=None):
 
 # Removes entire entry for a group
 # Returns false if group doesn't exist
-#  error throws
 def removeGroup(name: str):
     global groupData
     if name in groupData.keys():
@@ -274,12 +292,11 @@ def removeGroup(name: str):
         signalForGroupDataUpdate(True)
         return True
     else:
-        print('group doesn\'t exist -> throw error')
+        raise GroupDoesNotExistError(error)
         return False
 
 # Edits an existing group's description
 # Returns false if the group doesn't exist
-#  error throws
 def editGroupDescription(name: str, description: str):
     global groupData
     if name in groupData:
@@ -287,29 +304,27 @@ def editGroupDescription(name: str, description: str):
         signalForGroupDataUpdate(True)
         return True
     else:
-        print('group doesn\'t exist -> throw error')
+        raise GroupDoesNotExistError(name)
         return False
 
 # Add author to a group
 # Returns false if no matching group name or in group already
-#  error throws
 def joinGroup(context, name: str, offlinePing=True):
     global groupData
     userProps = {'offlinePing': offlinePing}
     if name in groupData:
         if str(context.author.id) in groupData[name]['member']:
-            print('user already in group -> throw error')
+            raise GroupUserAlreadyInGroupError(name)
             return False
         groupData[name]['member'][str(context.author.id)] = userProps
         signalForGroupDataUpdate(True)
         return True
     else:
-        print('group doesn\'t exist -> throw error')
+        raise GroupDoesNotExistError(name)
         return False
 
 # Remove author from a group
 # Returns false if not in the group, or if the group doesn't exist
-#  error throws
 def leaveGroup(context, name: str):
     global groupData
     if name in groupData:
@@ -318,16 +333,15 @@ def leaveGroup(context, name: str):
             signalForGroupDataUpdate(True)
             return True
         else:
-            print('not in this group')
+            raise GroupUserNotInGroupError(name)
             return False
     else:
-        print('group doesn\'t exist -> throw error')
+        raise GroupDoesNotExistError(name)
         return False
 
 # Replace user preferences for a group with dictionary
 # Returns false if not in group or no matching group
 #  throw error if no dict provided (missing arg)
-#  error throws
 def updateUserGroupPreferences(context, name: str, properties: dict):
     global groupData
     if name in groupData:
@@ -338,7 +352,7 @@ def updateUserGroupPreferences(context, name: str, properties: dict):
         signalForGroupDataUpdate(True)
         return True
     else:
-        print('group no exist -> throw error')
+        raise GroupDoesNotExistError(name)
         return False
 
 # Write groupData dict to GROUP_FILE, return True if sucessful
@@ -351,7 +365,6 @@ def writeGroupData():
             print('Group Data Written')
             return True
     return None
-
 
 # Read GROUP_FILE and assign to groupData dict, return groupData
 def readGroupData():
