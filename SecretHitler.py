@@ -42,53 +42,26 @@ class SecretHitler(commands.Cog, command_attrs=dict(hidden=True)):
 
     @commands.command(name='joinSH')
     async def makePlayer(self, context):
-        joinActiveLobby(context)
-        makeFakePlayers(context, 4)
-        print(lobbyList)
+        playerManager.joinLobby(context.author.id)
+        playerManager.makeFakePlayers(4)
 
     @commands.command(name='playerlist')
     async def playerList(self, context):
-        print(playerList)
+        print(playerManager.printPlayerOrder())
 
     @commands.command(name='role')
     async def assignRole(self, context):
-        evaluateAndAssignPlayerRoles(context)
-        await context.send(printPlayerOrder())
-
-    @commands.command(name='startsh')
-    async def startSecretHitler(self, context):
-        global isLoaded
-        isLoaded = True
-        await mainLoop(context, TICK_RATE)
-
-    @commands.command(name='endsh')
-    async def endSecretHitler(self, context):
-        global isLoaded
-        isLoaded = False
-
-    @commands.command(name='next')
-    async def nextPlayer(self, context):
-        advanceAndGetCurrentPlayer()
-        await context.send(playerList[currentPosition]['name'])
+        playerManager.assignPlayerRoles(context)
+        await context.send(playerManager.printPlayerOrder())
 
     @commands.command(name='reset')
     async def resetCommand(self, context):
         await initVotingSequence(context)
 
-    @commands.command(name='makeDeck')
-    async def createNewDeckCommand(self, context):
-        print('Deck Created')
-        cardManager.createDeck(11, 6)
-
-    @commands.command(name='deal')
-    async def dealCards(self, context):
-        print(cardManager.drawCards(3))
-
-
     #HELPER COMMAND
     @commands.command(name='testsh')
     async def testingSecretHitlerCommand(self, context):
-        joinActiveLobby(context)
+        joinLobby(context.author.id)
         makeFakePlayers(context, 4)
         evaluateAndAssignPlayerRoles(context)
         await context.send(printPlayerOrder())
@@ -206,20 +179,110 @@ class CardManager():
         return gameBoard
 
 class PlayerManager():
-    currentPosition = -1
-    playerList = {}
-    lobbyList = []
+
+    def __init__(self):
+        self.currentPosition = -1
+        self.playerList = []
+        self.lobbyList = []
+
+    def sortPlayerList(self):
+        self.playerList.sort(key=lambda x: x.position)
+
+    def joinLobby(self, playerID):
+        self.lobbyList.append(playerID)
+
+    def makeFakePlayers(self, num: int):
+        for i in range(num):
+            self.joinLobby(1 + i)
+
+    def printPlayerOrder(self):
+        message = '```'
+        for i in range(len(self.playerList)):
+            message += 'Player ' + str(i+1) + ': ' + self.playerList[i].name + '\n'
+        message += '```'
+        return message
+
+    def advancePlayerPosition(self):
+        self.currentPosition += 1
+
+        if (self.currentPosition) in range(len(self.playerList)):
+            if not self.playerList[self.currentPosition].dead:
+                print('in bounds and not dead')
+                print('new current is ' + str(self.currentPosition))
+                return self.currentPosition
+            else:
+                print('current is dead, advance')
+                advancePlayerPosition()
+        else:
+            print('reached the end of the player list')
+            self.currentPosition += 1 # reset to the start of the list
+            advancePlayerPosition()
+
+    # Count the players in lobby and assign all to the playerList with role, party, and position
+    def assignPlayerRoles(self, context):
+        playerCount = len(self.lobbyList)                                       # Helper for player count
+        if playerCount in range(5, 10+1):                                       # Check for valid number of players, 5-10
+            roles = roleManager.makeRoleListForAssignment(playerCount)          # Assign the appropriate role distribution
+            random.shuffle(roles)                                               # Shuffle to feel better
+            positions = list(range(playerCount))                                # Make a position list of the total player count
+        
+            # For each player in the lobby
+            for playerID in self.lobbyList:
+                roleAssignment = random.choice(roles)                           # Choose a random role
+                positionAssignment = random.choice(positions)                   # Choose a random position
+                if roleAssignment is 'Liberal': partyAssignment = 'Liberal'     # Assign the party
+                else: partyAssignment = 'Fascist'
+            
+                
+                user = context.bot.get_user(playerID)
+                if user is None: name = 'Fake ' + str(playerID)
+                else: name = user.name
+
+                # Make and assign the player to playerList
+                player = Player(name=name, id=playerID, party=partyAssignment, role=roleAssignment, position=positionAssignment)
+                self.playerList.append(player)
+                roles.remove(roleAssignment)                                    # Remove the role from temporary list
+                positions.remove(positionAssignment)                            # Remove the position from temporary list
+            self.sortPlayerList()
+        else:
+            print('Player count invalid: ' + str(playerCount))
 
 class Player(object):
-    name = 'Empty'
-    id = -1
-    party = 'Unassigned'
-    role = 'Unassigned'
-    position = -1
-    ready = False
-    term_limited = False
-    dead = False
+    def __init__(self, name='Empty', id='-1', party='Unassigned', role='Unassigned', position=-1, ready=False, term_limited=False, dead=False):
+        self.name = name
+        self.id = id
+        self.party = party
+        self.role = role
+        self.position = position
+        self.ready = ready
+        self.term_limited = term_limited
+        self.dead = dead
 
+class RoleManager():
+    
+    def __init__(self):
+        # For 5 or 6 players, Hitler knows who their Fascist is
+        self.ROLE_DISTRIBUTION = {5:  {'Liberal': 3, 'Fascist': 1, 'Hitler': 1},
+                                  6:  {'Liberal': 4, 'Fascist': 1, 'Hitler': 1},
+                                  7:  {'Liberal': 4, 'Fascist': 2, 'Hitler': 1},
+                                  8:  {'Liberal': 5, 'Fascist': 2, 'Hitler': 1},
+                                  9:  {'Liberal': 5, 'Fascist': 3, 'Hitler': 1},
+                                  10: {'Liberal': 6, 'Fascist': 3, 'Hitler': 1}
+                                  }
+
+
+    # Make a temporary list for assigning roles to each player
+    # Takes in playerCount to match to a distribution of roles
+    # Returns raw list of Role strings (Liberal, Fascist, Hitler) in correct numbers
+    def makeRoleListForAssignment(self, playerCount):
+        roleList = []
+
+        # For each roleString in ROLE_DISTRIBUTION, append that string a number of times
+        for roleString in self.ROLE_DISTRIBUTION[playerCount]:
+            # How many times to add roleString from the size in roleString:value
+            for _ in range(self.ROLE_DISTRIBUTION[playerCount][roleString]):
+                roleList.append(roleString)
+        return roleList
 # Soon
 '''
 display "board"
@@ -247,25 +310,15 @@ player assignment
     take number of players and select appropriate distribution and assign
 determine player order
 '''
-# One loop every TICK_RATE seconds
 
+# One loop every TICK_RATE seconds
 TICK_RATE = 2
 
-gameActive = True
-playerList = {}
-lobbyList = []
 cardManager = CardManager(17)
+playerManager = PlayerManager()
+roleManager = RoleManager()
 
 currentPosition = -1
-
-# For 5 or 6 players, Hitler knows who their Fascist is
-ROLE_DISTRIBUTION = {5:  {'Liberal': 3, 'Fascist': 1, 'Hitler': 1},
-                     6:  {'Liberal': 4, 'Fascist': 1, 'Hitler': 1},
-                     7:  {'Liberal': 4, 'Fascist': 2, 'Hitler': 1},
-                     8:  {'Liberal': 5, 'Fascist': 2, 'Hitler': 1},
-                     9:  {'Liberal': 5, 'Fascist': 3, 'Hitler': 1},
-                     10: {'Liberal': 6, 'Fascist': 3, 'Hitler': 1}
-                     }
 
 # Number emoji's
 NUMBER_EMOJI = ['1\N{combining enclosing keycap}',
@@ -280,106 +333,7 @@ NUMBER_EMOJI = ['1\N{combining enclosing keycap}',
                 '\N{keycap ten}'
                 ]
 
-# let players ready up
-
-# Makes a player, with assosciated properties
-def makePlayerProps(name='Empty', uniqID='-1', party='Unassigned', role='Unassigned', position=-1, ready=False, tl=False, dead=False):
-    props = {'name': name,
-             'id': uniqID,
-             'party': party,
-             'role': role,
-             'position': position,
-             'ready': ready,
-             'term-limited': tl,
-             'dead': dead
-             }
-    return props
-
-def joinActiveLobby(context):
-    lobbyList.append(context.author.id)
-
-def makeFakePlayers(context, num: int):
-    for i in range(num):
-        lobbyList.append(1 + i)
-
-def printPlayerOrder():
-    message = '```'
-    for i in range(len(playerList)):
-        print(playerList[i])
-        message += 'Player ' + str(i+1) + ': ' + playerList[i]['name'] + '\n'
-    message += '```'
-    return message
-
-# Sets the author in the active lobby to 'ready'
-# Author must already be in lobby
-def readyActiveLobby(context):
-    if context.author.id in playerList:
-        playerList[context.author.id]['Ready'] = True
-    else:
-        print('Player not in lobby')
-
-# Make a temporary list for assigning roles to each player
-# Takes in dictionary of Role Count -- ROLE_DISTRIBUTION[i]
-def makeRoleListForAssignment(roleLayout: dict):
-    roleList = []
-    for i in roleLayout:
-        for _ in range(roleLayout[i]):
-            roleList.append(i)
-    return roleList
-
-# Count the players in lobby and assign all to the playerList with role, party, and position
-def evaluateAndAssignPlayerRoles(context):
-    playerCount = len(lobbyList)                                            # Helper for player count
-    if playerCount in range(5, 10+1):                                       # Check for valid number of players, 5-10
-        roles = makeRoleListForAssignment(ROLE_DISTRIBUTION[playerCount])   # Assign the appropriate role distribution
-        random.shuffle(roles)                                               # Shuffle to feel better
-        positions = list(range(playerCount))                                # Make a position list of the total player count
-        
-        # For each player in the lobby
-        for playerID in lobbyList:
-            roleAssignment = random.choice(roles)                           # Choose a random role
-            positionAssignment = random.choice(positions)                   # Choose a random position
-            if roleAssignment is 'Liberal': partyAssignment = 'Liberal'     # Assign the party
-            else: partyAssignment = 'Fascist'
-            
-            # Make and assign the player to playerList
-            user = context.bot.get_user(playerID)
-            if user is None: name = 'Fake ' + str(playerID)
-            else: name = user.name
-            playerList[positionAssignment] = makePlayerProps(name=name,
-                                                    uniqID=playerID,
-                                                    party=partyAssignment,
-                                                    role=roleAssignment,
-                                                    position=positionAssignment
-                                                    )
-            roles.remove(roleAssignment)                                    # Remove the role from temporary list
-            positions.remove(positionAssignment)                            # Remove the position from temporary list
-    else:
-        print('Player count invalid: ' + str(playerCount))
-
-# Set the global var of current player
-# Helper function so global doesn't need to be declared
-def setCurrentPlayer(pos: int):
-    global currentPosition
-    currentPosition = pos
-    return currentPosition
-
-# Advancing the current player happens first, logic occurs after to see if it's acceptable
-def advanceAndGetCurrentPlayer():
-    setCurrentPlayer(currentPosition+1)
-
-    if (currentPosition) in range(len(playerList)):
-        if not playerList[currentPosition]['dead']:
-            print('in bounds and not dead')
-            print('new current is ' + str(currentPosition))
-            return currentPosition
-        else:
-            print('current is dead, advance')
-            advanceAndGetCurrentPlayer()
-    else:
-        print('reached the end of the player list')
-        setCurrentPlayer(-1) # reset to the start of the list
-        advanceAndGetCurrentPlayer()
+# ready player
 
 # start a president selection
 # returns the message created
@@ -388,18 +342,18 @@ async def prepareChancellorSelectionPrompt(context):
     # prompt with all players in the game (including availability (dead or term limit))
 
     prompt = 'Please select your nomination for chancellor'
-    for i in range(len(playerList)):
-        prompt += '\n' + playerList[i]['name']
-        if playerList[i]['dead']:
+    for i in range(len(playerManager.playerList)):
+        prompt += '\n' + playerManager.playerList[i].name
+        if playerManager.playerList[i].dead:
             prompt += '\t-\t DEAD'
-        if playerList[i]['term-limited']:
+        if playerManager.playerList[i].term_limited:
             prompt += '\t-\t Term-Limited'
-        if playerList[i]['position'] is currentPosition:
+        if playerManager.playerList[i].position is playerManager.currentPosition:
             prompt += '\t-\t President Elect'
 
     msg = await context.send(prompt)
     
-    for i in range(len(playerList)):
+    for i in range(len(playerManager.playerList)):
         await msg.add_reaction(NUMBER_EMOJI[i])
 
     return msg
@@ -422,15 +376,15 @@ async def waitForChancellorSelectionReaction(context, msg):
     for i in range(len(NUMBER_EMOJI)):
         print(str(i))
         if NUMBER_EMOJI[i] == reaction.emoji:
-            if i is currentPosition:
+            if i is playerManager.currentPosition:
                 await msg.remove_reaction(reaction.emoji, context.author)
                 await context.send('You can\'t elect yourself! Please vote again.', delete_after=5)
                 return await waitForChancellorSelectionReaction(context, msg)
-            elif i is playerList[i]['dead']:
+            elif i is playerManager.playerList[i].dead:
                 await msg.remove_reaction(reaction.emoji, context.author)
                 await context.send('That player is dead! Please vote again.', delete_after=5)
                 return await waitForChancellorSelectionReaction(context, msg)
-            elif i is playerList[i]['term-limited']:
+            elif i is playerManager.playerList[i].term_limited:
                 await msg.remove_reaction(reaction.emoji, context.author)
                 await context.send('That player is term-limited for this turn. Please vote again.', delete_after=5)
                 return await waitForChancellorSelectionReaction(context, msg)
@@ -446,18 +400,16 @@ async def prepareChancellorVotingPrompt(context, chancellorPos: int):
     # prompt for ja or nein
     # return a list of all messages used
 
-    prompt = 'Voting: ' + str(currentPosition) + '\t' + str(chancellorPos)
+    prompt = 'Voting: ' + str(playerManager.currentPosition) + '\t' + str(playerManager.chancellorPos)
     await context.send(prompt)
     return msgList
 
 async def initVotingSequence(context):
-    print(str(advanceAndGetCurrentPlayer()))
+    print(str(playerManager.advancePlayerPosition()))
     msg = await prepareChancellorSelectionPrompt(context)
     selection = await waitForChancellorSelectionReaction(context, msg)
 
     await context.send('Candidate Number ' + str(selection + 1) + ' selected')
-
-
 
 # Main loop for Secret Hitler
 # Handle display drawing
