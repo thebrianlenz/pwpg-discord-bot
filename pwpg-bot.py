@@ -7,6 +7,7 @@ from configparser import SafeConfigParser
 import discord
 from discord.ext import commands
 from discord.ext.commands import Bot
+import GroupManager
 
 BOT_PREFIX = ("!","$")
 
@@ -27,6 +28,7 @@ async def on_command_error(context, error):
 
     if isinstance(error, commands.CommandNotFound):
         print('Command not found')
+        print(error)
         return
     if isinstance(error, commands.CommandOnCooldown):
         print(error)
@@ -36,9 +38,9 @@ async def on_command_error(context, error):
         print(context.author.name)
         return
 
-    print (error)
 
-    await context.send_help('There was a problem with: ' + context.command.name)
+    print (error)
+    await context.send_help('There was an unhandled problem with: ' + str(context.command.name) + '\n' + str(error))
 
     # Some other error, let the cooldown reset
     context.command.reset_cooldown(context)
