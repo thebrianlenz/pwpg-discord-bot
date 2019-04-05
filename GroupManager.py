@@ -8,11 +8,8 @@ import asyncio
 import json
 
 GROUP_FILE = 'groupsData.json'
-groupDataHasChanged = False
-isLoaded = False
 
 RESERVED_WORDS = ['group', 'groups', 'all']
-TICK_RATE = 1
 
 groupData = {}
 
@@ -21,26 +18,17 @@ class GroupAlreadyExistsError(commands.BadArgument): pass
 class GroupUserAlreadyInGroupError(commands.BadArgument): pass
 class GroupUserNotInGroupError(commands.BadArgument): pass
 
-#temp = test['group']['group1']['members']
-
-#groupsJSON = {groupName: {desc:desc, members: [list]}}
-
-# members: [listOfMembers]
-# groupName: {description, members}
-
 #       √ Remove the 'No Description' message on command repsonses
 #       Delete group confirmation
-#       √ FIXME: List all of a single user's groups
+#       √ List all of a single user's groups
 #       √ Cooldown on group creation
 #           Needs better error management, doesn't feel very clean
 #       Case insensitivity when join/leave
-#       √ Convert user data to the unique identifier (snowflake?) for save and
-#       eval
+#       √ Convert user data to the unique identifier (snowflake?) for save and eval
 #       Temporary group mute for a user
 #       √ Offline ping preference setting
 #           Needs a refactor for more/smarter preferences
-#       BUG the write loop should be refactored back to on-call writing?
-#           File writes seem to miss at points, unsure how it behaves on a lost connection
+#       √ BUG the write loop should be refactored back to on-call writing?
 #       Expand on error handling to inclue more information (command causing the error, etc)
 class GroupManager(commands.Cog):
 
@@ -77,19 +65,19 @@ class GroupManager(commands.Cog):
         setattr(context, 'error_being_handled', False)
 
     @commands.command(name='jsdump', hidden=True)
-    async def dump(self, context):
+    async def dump(self):
         print(groupData)
         writeGroupData()
 
     # Return full list of all groups with member count (short descr too?)
     @commands.cooldown(1, 5, commands.BucketType.channel)
     @commands.command(name='list',
-                    description='List all groups. To see members of a specific group, include the group name.',
-                    brief='List all groups, or members of a group.',
-                    aliases=['ls'],
-                    invoke_without_command=True,
-                    rest_is_raw=True,
-                    pass_context=True)
+                      description='List all groups. To see members of a specific group, include the group name.',
+                      brief='List all groups, or members of a group.',
+                      aliases=['ls'],
+                      invoke_without_command=True,
+                      rest_is_raw=True,
+                      pass_context=True)
     async def listGroupsCommand(self, context, groupName=None):
         messageToSend = ''
         uc = UserConverter()
@@ -244,23 +232,11 @@ class GroupManager(commands.Cog):
         await context.message.delete()
         await context.send('The word "waffle" first appears in the English language in 1725', delete_after=180)
 
-
-# Main loop for the Group Manager to operate under
-# Checks for changes to the groupData and writes when needed
-async def groupManagerLoop(tickRate: int):
-    #while(isLoaded):
-    #    if writeGroupData():
-    #        return
-    #    await asyncio.sleep(tickRate)
-    pass
-
 # Create a group entry with an optional name
 # Returns false if group exists
 def addGroup(context, name: str, description=None):
     global groupData
-    if name in groupData:
-        raise GroupAlreadyExistsError(name)
-        return False
+    if name in groupData: raise GroupAlreadyExistsError(name)
     else:
         if description is None: description = 'No Description'
         groupData[name] = {'member':{}, 'description': description}
@@ -277,7 +253,7 @@ def removeGroup(name: str):
         writeGroupData()
         return True
     else:
-        raise GroupDoesNotExistError(error)
+        raise GroupDoesNotExistError(name)
         return False
 
 # Edits an existing group's description
@@ -360,13 +336,8 @@ def readGroupData():
 
 
 def setup(bot):
-    global isLoaded
-    isLoaded = True
     bot.add_cog(GroupManager(bot))
-    #bot.loop.create_task(groupManagerLoop(TICK_RATE))
 
 def teardown(bot):
-    global isLoaded
-    isLoaded = False
     writeGroupData()
     bot.remove_cog('GroupManager')

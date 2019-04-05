@@ -116,6 +116,18 @@
             },
             "121671543712382976": {
                 "offlinePing": false
+            },
+            "118371293123969026": {
+                "offlinePing": false
+            },
+            "126172702812798986": {
+                "offlinePing": false
+            },
+            "133368750924759041": {
+                "offlinePing": false
+            },
+            "122063202321301504": {
+                "offlinePing": false
             }
         },
         "description": "Risk of Rain !"
@@ -179,6 +191,9 @@
     "DRG": {
         "member": {
             "170169769402695680": {
+                "offlinePing": false
+            },
+            "126172702812798986": {
                 "offlinePing": false
             }
         },
