@@ -15,6 +15,12 @@
             },
             "226076608618823680": {
                 "offlinePing": true
+            },
+            "121680627773734912": {
+                "offlinePing": false
+            },
+            "183619506780766209": {
+                "offlinePing": false
             }
         },
         "description": "Apex Legends"
@@ -40,6 +46,18 @@
                 "offlinePing": false
             },
             "248536388839014402": {
+                "offlinePing": true
+            },
+            "109451597423091712": {
+                "offlinePing": false
+            },
+            "439879488562528257": {
+                "offlinePing": false
+            },
+            "221345797059510272": {
+                "offlinePing": true
+            },
+            "183619506780766209": {
                 "offlinePing": false
             }
         },
@@ -66,7 +84,7 @@
                 "offlinePing": false
             },
             "248536388839014402": {
-                "offlinePing": false
+                "offlinePing": true
             },
             "133368750924759041": {
                 "offlinePing": false
@@ -79,6 +97,18 @@
             },
             "98315403670880256": {
                 "offlinePing": false
+            },
+            "104014747476705280": {
+                "offlinePing": false
+            },
+            "109451597423091712": {
+                "offlinePing": false
+            },
+            "201097288288829451": {
+                "offlinePing": false
+            },
+            "436572969515352065": {
+                "offlinePing": false
             }
         },
         "description": "Trouble in Terrorist Town"
@@ -86,9 +116,6 @@
     "owtc": {
         "member": {
             "121671543712382976": {
-                "offlinePing": false
-            },
-            "126172702812798986": {
                 "offlinePing": false
             },
             "170169769402695680": {
@@ -102,6 +129,9 @@
             },
             "221345797059510272": {
                 "offlinePing": false
+            },
+            "436572969515352065": {
+                "offlinePing": true
             }
         },
         "description": "Offworld Trading Company"
@@ -109,7 +139,7 @@
     "RoR": {
         "member": {
             "436572969515352065": {
-                "offlinePing": false
+                "offlinePing": true
             },
             "248536388839014402": {
                 "offlinePing": false
@@ -128,6 +158,15 @@
             },
             "122063202321301504": {
                 "offlinePing": false
+            },
+            "170169769402695680": {
+                "offlinePing": false
+            },
+            "109451597423091712": {
+                "offlinePing": false
+            },
+            "173158969131401216": {
+                "offlinePing": false
             }
         },
         "description": "Risk of Rain !"
@@ -142,6 +181,9 @@
             },
             "226076608618823680": {
                 "offlinePing": true
+            },
+            "109451597423091712": {
+                "offlinePing": false
             }
         },
         "description": "Warhammer 40k"
@@ -156,6 +198,12 @@
             },
             "126172702812798986": {
                 "offlinePing": false
+            },
+            "109451597423091712": {
+                "offlinePing": false
+            },
+            "121680627773734912": {
+                "offlinePing": false
             }
         },
         "description": "Sid Meier's Civilization VI"
@@ -163,7 +211,7 @@
     "factorio": {
         "member": {
             "436572969515352065": {
-                "offlinePing": false
+                "offlinePing": true
             },
             "121671543712382976": {
                 "offlinePing": false
@@ -194,6 +242,109 @@
                 "offlinePing": false
             },
             "126172702812798986": {
+                "offlinePing": false
+            },
+            "133368750924759041": {
+                "offlinePing": false
+            },
+            "121671543712382976": {
+                "offlinePing": false
+            },
+            "226076608618823680": {
+                "offlinePing": false
+            }
+        },
+        "description": "Deep Rock Galactic"
+    },
+    "*": {
+        "member": {
+            "121671543712382976": {
+                "offlinePing": true
+            },
+            "170169769402695680": {
+                "offlinePing": false
+            },
+            "226076608618823680": {
+                "offlinePing": false
+            },
+            "183619506780766209": {
+                "offlinePing": false
+            }
+        },
+        "description": "Wildcard group. Ping for \"anything\""
+    },
+    "AoE": {
+        "member": {
+            "436572969515352065": {
+                "offlinePing": true
+            },
+            "121671543712382976": {
+                "offlinePing": false
+            },
+            "126172702812798986": {
+                "offlinePing": false
+            },
+            "173158969131401216": {
+                "offlinePing": false
+            },
+            "413111143272415232": {
+                "offlinePing": false
+            },
+            "221345797059510272": {
+                "offlinePing": false
+            },
+            "170169769402695680": {
+                "offlinePing": false
+            },
+            "183619506780766209": {
+                "offlinePing": false
+            }
+        },
+        "description": "Age of Empires"
+    },
+    "tts": {
+        "member": {
+            "226076608618823680": {
+                "offlinePing": true
+            },
+            "126172702812798986": {
+                "offlinePing": false
+            },
+            "173158969131401216": {
+                "offlinePing": false
+            }
+        },
+        "description": "No Description"
+    },
+    "PD2": {
+        "member": {
+            "121671543712382976": {
+                "offlinePing": true
+            },
+            "126172702812798986": {
+                "offlinePing": false
+            },
+            "226076608618823680": {
+                "offlinePing": false
+            },
+            "248536388839014402": {
+                "offlinePing": false
+            }
+        },
+        "description": "Payday 2"
+    },
+    "Speedrunners": {
+        "member": {
+            "126172702812798986": {
+                "offlinePing": true
+            },
+            "121671543712382976": {
+                "offlinePing": false
+            },
+            "226076608618823680": {
+                "offlinePing": false
+            },
+            "248536388839014402": {
                 "offlinePing": false
             }
         },

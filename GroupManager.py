@@ -50,24 +50,23 @@ class GroupManager(commands.Cog):
             return
         if isinstance(error, GroupAlreadyExistsError):
             await context.send('The group `' + str(error) + '` already exists! Use $list to see existing groups.') # Remove $list hardcoding
+            context.command.reset_cooldown(context)
             return
         if isinstance(error, GroupDoesNotExistError):
             await context.send('The group `' + str(error) + '` does not exist! Use $create <groupName> to create a new group.') # Remove hardcoding
+            context.command.reset_cooldown(context)
             return
         if isinstance(error, GroupUserAlreadyInGroupError):
             await context.send('You are already in `' + str(error) + '`. There is no need to join again! Use $mysubs to see all of your group memberships.') # Remove hardcoding
+            context.command.reset_cooldown(context)
             return
         if isinstance(error, GroupUserNotInGroupError):
             await context.send('You are not in group `' + str(error) + '`. Use $sub <groupName> to join a group, or $mysubs to see all of your memberships.') # Remove hardcoding
+            context.command.reset_cooldown(context)
             return
 
         # Finished handling our errors, anything left will go to the generic handler in pwpg-bot
         setattr(context, 'error_being_handled', False)
-
-    @commands.command(name='jsdump', hidden=True)
-    async def dump(self):
-        print(groupData)
-        writeGroupData()
 
     # Return full list of all groups with member count (short descr too?)
     @commands.cooldown(1, 5, commands.BucketType.channel)
