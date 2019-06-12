@@ -27,7 +27,6 @@ async def on_command_error(context, error):
     if hasattr(context, 'error_being_handled') and context.error_being_handled: return
 
     if isinstance(error, commands.CommandNotFound):
-        print('Command not found')
         print(error)
         return
     if isinstance(error, commands.CommandOnCooldown):
