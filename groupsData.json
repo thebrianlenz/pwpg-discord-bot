@@ -159,7 +159,7 @@
         "title": "RoR",
         "description": "Risk of Rain !",
         "aliases": [
-            "RoR"
+            "ror"
         ],
         "members": {
             "436572969515352065": {
@@ -219,7 +219,7 @@
         "title": "CivVI",
         "description": "Sid Meier's Civilization VI",
         "aliases": [
-            "CivVI"
+            "civvi"
         ],
         "members": {
             "121671543712382976": {
@@ -285,7 +285,7 @@
         "title": "DRG",
         "description": "Deep Rock Galactic",
         "aliases": [
-            "DRG"
+            "drg"
         ],
         "members": {
             "170169769402695680": {
@@ -333,7 +333,7 @@
         "title": "AoE",
         "description": "Age of Empires",
         "aliases": [
-            "AoE"
+            "aoe"
         ],
         "members": {
             "121671543712382976": {
@@ -358,6 +358,9 @@
                 "offlinePing": false
             },
             "97332387133788160": {
+                "offlinePing": false
+            },
+            "436572969515352065": {
                 "offlinePing": false
             }
         }
@@ -387,7 +390,7 @@
         "title": "PD2",
         "description": "Payday 2",
         "aliases": [
-            "PD2"
+            "pd2"
         ],
         "members": {
             "121671543712382976": {
@@ -411,7 +414,7 @@
         "title": "Speedrunners",
         "description": "No Description",
         "aliases": [
-            "Speedrunners"
+            "speedrunners"
         ],
         "members": {
             "126172702812798986": {
@@ -433,14 +436,6 @@
                 "offlinePing": false
             }
         }
-    },
-    "15": {
-        "title": "CaSEsEnsItIVe",
-        "description": "No Description",
-        "aliases": [
-            "CaSEsEnsItIVe"
-        ],
-        "members": {}
     },
     "16": {
         "title": "mordhau",

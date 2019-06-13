@@ -154,7 +154,7 @@ class GroupManager(commands.Cog):
         id = getGroupNameId(groupName)
         if id is not False:
             m = MemberConverter()
-            messageToSend = '`' + context.author.display_name + '` has pinged `' + groupName + '`.'
+            messageToSend = f'`{context.author.display_name}` has pinged `{getGroupTitle(groupName)}`.'
             if optionalMessage is not None:
                 messageToSend += '\n' + optionalMessage
 
@@ -181,7 +181,7 @@ class GroupManager(commands.Cog):
                       pass_context=True)
     async def createGroupCommand(self, context, *, groupName):
         if addGroup(context, groupName):
-            await context.send('Group `' + groupName + '` has been created.')
+            await context.send(f'Group `{getGroupTitle(groupName)}` has been created.')
         else:
             return
 
@@ -195,8 +195,9 @@ class GroupManager(commands.Cog):
                     hidden=True,
                     pass_context=True)
     async def deleteGroupCommand(self, context, *, groupName):
+        title = getGroupTitle(groupName)
         if removeGroup(groupName):
-            await context.send('Group `' + groupName + '` has been deleted.')
+            await context.send(f'Group `{title}` has been deleted.')
         else:
             return
 
@@ -210,11 +211,11 @@ class GroupManager(commands.Cog):
     async def editGroupDescriptionCommand(self, context, groupName, *, description=None):
         if description is None:
             if editGroupDescription(groupName, 'No Description'):
-                await context.send('The description for `' + groupName + '` has been removed.')
+                await context.send(f'The description for `{getGroupTitle(groupName)}` has been removed.')
             return
         else:
             if editGroupDescription(groupName, description):
-                await context.send('The description for `' + groupName + '` has been updated.')
+                await context.send(f'The description for `{getGroupTitle(groupName)}` has been updated.')
             return
 
     # Edit a user's group preference
@@ -245,8 +246,35 @@ class GroupManager(commands.Cog):
     async def testid(self, context):
         rebuildGroupsData()
 
+    @commands.group(name='group',
+                      description='Manage group properties: Title, Aliases, or Description',
+                      brief='Manage group properties',
+                      pass_context=True)
+    async def manageGroupCommand(self, context):
+        print('group command')
+        return
 
-## Creates a new group entry. Title required, include optional description and aliases
+    @manageGroupCommand.group(name='alias',
+                                description='Manage group aliases. Use -add or -remove for quick management.',
+                                brief='Manage group aliases.',
+                                pass_context=True)
+    async def aliasCommand(self, context):
+        print('alias command')
+        return
+
+    @aliasCommand.command(name='-add',
+                          description='Add an alias to an existing group.',
+                          brief='Add an alias.',
+                          aliases=['add','a','-a'],
+                          pass_context=True)
+    async def aliasCommandAdd(self, context, groupName: str, *, newAlias: str):
+        if addAliasToGroup(context, groupName, newAlias):
+            await context.send(f'The alias `{newAlias}` has been added to `{getGroupTitle(groupName)}`.')
+        return
+
+
+
+## Creates a new group entry. Title required
 def addGroup(context, groupTitle: str):
     global groupData
     if getGroupNameId(nameCleanUp(groupTitle)) is not False: raise GroupAlreadyExistsError(groupTitle)
@@ -266,10 +294,11 @@ def addAliasToGroup(context, groupName: str, newAlias: str):
         aliasid = getGroupNameId(newAlias)
         if aliasid is not False: raise GroupAlreadyExistsError(newAlias)
         else:
-            groupData[id]['aliases'].insert(nameCleanUp(newAlias))
+            groupData[id]['aliases'].append(nameCleanUp(newAlias))
     else:
         raise GroupDoesNotExistError(groupName)
     writeGroupData()
+    return True
 
 # Checks for a Group Name in all aliases
 # Automatically cleans the groupName passed in
@@ -281,6 +310,17 @@ def getGroupNameId(groupName: str):
     for id in groupData:
         if groupName in groupData[id]['aliases']:
             return id
+    return False
+
+# Checks for a Group Name in all aliases
+# Returns the Title of a group if the alias is in use
+# Returns False if the name is unused
+def getGroupTitle(groupName: str):
+    global groupData
+    groupName = nameCleanUp(groupName)
+    for id in groupData:
+        if groupName in groupData[id]['aliases']:
+            return groupData[id]['title']
     return False
 
 # Returns a lowercase string without special characters
