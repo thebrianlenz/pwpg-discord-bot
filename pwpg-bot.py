@@ -2,7 +2,7 @@
 import asyncio
 import sys
 import traceback
-from configparser import SafeConfigParser
+from configparser import ConfigParser
 
 import discord
 from discord.ext import commands
@@ -11,7 +11,7 @@ import GroupManager
 
 BOT_PREFIX = ("!","$")
 
-config = SafeConfigParser()
+config = ConfigParser()
 client = Bot(command_prefix=BOT_PREFIX, case_insensitive=True)
 
 config.read('config.ini')

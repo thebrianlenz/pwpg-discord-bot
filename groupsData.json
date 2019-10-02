@@ -1,455 +1,509 @@
 {
-    "0": {
-        "title": "apex",
-        "description": "Apex Legends",
-        "aliases": [
-            "apex"
-        ],
-        "members": {
-            "118371293123969026": {
-                "offlinePing": true
-            },
-            "173158969131401216": {
-                "offlinePing": false
-            },
-            "248536388839014402": {
-                "offlinePing": false
-            },
-            "221345797059510272": {
-                "offlinePing": false
-            },
-            "226076608618823680": {
-                "offlinePing": true
-            },
-            "121680627773734912": {
-                "offlinePing": false
-            },
-            "183619506780766209": {
-                "offlinePing": false
+    "315995274575085570": {
+        "0": {
+            "title": "apex",
+            "description": "Apex Legends",
+            "aliases": [
+                "apex"
+            ],
+            "members": {
+                "118371293123969026": {
+                    "offlinePing": true
+                },
+                "173158969131401216": {
+                    "offlinePing": false
+                },
+                "248536388839014402": {
+                    "offlinePing": false
+                },
+                "221345797059510272": {
+                    "offlinePing": false
+                },
+                "226076608618823680": {
+                    "offlinePing": true
+                },
+                "121680627773734912": {
+                    "offlinePing": false
+                },
+                "183619506780766209": {
+                    "offlinePing": false
+                }
             }
+        },
+        "1": {
+            "title": "hots",
+            "description": "Heroes of the Storm",
+            "aliases": [
+                "hots"
+            ],
+            "members": {
+                "118371293123969026": {
+                    "offlinePing": false
+                },
+                "121671543712382976": {
+                    "offlinePing": false
+                },
+                "126172702812798986": {
+                    "offlinePing": false
+                },
+                "413111143272415232": {
+                    "offlinePing": false
+                },
+                "173158969131401216": {
+                    "offlinePing": false
+                },
+                "226076608618823680": {
+                    "offlinePing": false
+                },
+                "248536388839014402": {
+                    "offlinePing": true
+                },
+                "109451597423091712": {
+                    "offlinePing": false
+                },
+                "439879488562528257": {
+                    "offlinePing": false
+                },
+                "221345797059510272": {
+                    "offlinePing": true
+                },
+                "183619506780766209": {
+                    "offlinePing": false
+                }
+            }
+        },
+        "2": {
+            "title": "ttt",
+            "description": "Trouble in Terrorist Town",
+            "aliases": [
+                "ttt"
+            ],
+            "members": {
+                "121671543712382976": {
+                    "offlinePing": false
+                },
+                "126172702812798986": {
+                    "offlinePing": false
+                },
+                "170169769402695680": {
+                    "offlinePing": false
+                },
+                "413111143272415232": {
+                    "offlinePing": false
+                },
+                "173158969131401216": {
+                    "offlinePing": false
+                },
+                "226076608618823680": {
+                    "offlinePing": false
+                },
+                "248536388839014402": {
+                    "offlinePing": true
+                },
+                "133368750924759041": {
+                    "offlinePing": false
+                },
+                "221345797059510272": {
+                    "offlinePing": false
+                },
+                "203239014331973632": {
+                    "offlinePing": true
+                },
+                "98315403670880256": {
+                    "offlinePing": false
+                },
+                "104014747476705280": {
+                    "offlinePing": false
+                },
+                "109451597423091712": {
+                    "offlinePing": false
+                },
+                "201097288288829451": {
+                    "offlinePing": false
+                },
+                "436572969515352065": {
+                    "offlinePing": false
+                },
+                "144668502928654336": {
+                    "offlinePing": true
+                }
+            }
+        },
+        "3": {
+            "title": "owtc",
+            "description": "Offworld Trading Company",
+            "aliases": [
+                "owtc"
+            ],
+            "members": {
+                "121671543712382976": {
+                    "offlinePing": false
+                },
+                "170169769402695680": {
+                    "offlinePing": false
+                },
+                "173158969131401216": {
+                    "offlinePing": false
+                },
+                "248536388839014402": {
+                    "offlinePing": false
+                },
+                "221345797059510272": {
+                    "offlinePing": false
+                },
+                "436572969515352065": {
+                    "offlinePing": true
+                }
+            }
+        },
+        "4": {
+            "title": "RoR",
+            "description": "Risk of Rain !",
+            "aliases": [
+                "ror"
+            ],
+            "members": {
+                "436572969515352065": {
+                    "offlinePing": true
+                },
+                "248536388839014402": {
+                    "offlinePing": false
+                },
+                "121671543712382976": {
+                    "offlinePing": false
+                },
+                "118371293123969026": {
+                    "offlinePing": false
+                },
+                "126172702812798986": {
+                    "offlinePing": false
+                },
+                "133368750924759041": {
+                    "offlinePing": false
+                },
+                "122063202321301504": {
+                    "offlinePing": false
+                },
+                "170169769402695680": {
+                    "offlinePing": false
+                },
+                "109451597423091712": {
+                    "offlinePing": false
+                },
+                "173158969131401216": {
+                    "offlinePing": false
+                }
+            }
+        },
+        "5": {
+            "title": "40k",
+            "description": "Warhammer 40k",
+            "aliases": [
+                "40k"
+            ],
+            "members": {
+                "121671543712382976": {
+                    "offlinePing": false
+                },
+                "126172702812798986": {
+                    "offlinePing": false
+                },
+                "226076608618823680": {
+                    "offlinePing": true
+                },
+                "109451597423091712": {
+                    "offlinePing": false
+                }
+            }
+        },
+        "6": {
+            "title": "CivVI",
+            "description": "Sid Meier's Civilization VI",
+            "aliases": [
+                "civvi"
+            ],
+            "members": {
+                "121671543712382976": {
+                    "offlinePing": false
+                },
+                "170169769402695680": {
+                    "offlinePing": false
+                },
+                "126172702812798986": {
+                    "offlinePing": false
+                },
+                "109451597423091712": {
+                    "offlinePing": false
+                },
+                "121680627773734912": {
+                    "offlinePing": false
+                }
+            }
+        },
+        "7": {
+            "title": "factorio",
+            "description": "No Description",
+            "aliases": [
+                "factorio"
+            ],
+            "members": {
+                "436572969515352065": {
+                    "offlinePing": true
+                },
+                "121671543712382976": {
+                    "offlinePing": false
+                },
+                "126172702812798986": {
+                    "offlinePing": false
+                },
+                "144668502928654336": {
+                    "offlinePing": true
+                }
+            }
+        },
+        "8": {
+            "title": "fans_of_pwpg_bot",
+            "description": "No Description",
+            "aliases": [
+                "fans_of_pwpg_bot"
+            ],
+            "members": {
+                "436572969515352065": {
+                    "offlinePing": false
+                },
+                "170169769402695680": {
+                    "offlinePing": false
+                },
+                "413111143272415232": {
+                    "offlinePing": false
+                },
+                "144668502928654336": {
+                    "offlinePing": false
+                }
+            }
+        },
+        "9": {
+            "title": "DRG",
+            "description": "Deep Rock Galactic",
+            "aliases": [
+                "drg"
+            ],
+            "members": {
+                "170169769402695680": {
+                    "offlinePing": false
+                },
+                "126172702812798986": {
+                    "offlinePing": false
+                },
+                "133368750924759041": {
+                    "offlinePing": false
+                },
+                "121671543712382976": {
+                    "offlinePing": false
+                },
+                "226076608618823680": {
+                    "offlinePing": false
+                },
+                "144668502928654336": {
+                    "offlinePing": false
+                }
+            }
+        },
+        "10": {
+            "title": "*",
+            "description": "Wildcard group. Ping for \"anything\"",
+            "aliases": [
+                "*"
+            ],
+            "members": {
+                "121671543712382976": {
+                    "offlinePing": true
+                },
+                "170169769402695680": {
+                    "offlinePing": false
+                },
+                "226076608618823680": {
+                    "offlinePing": false
+                },
+                "183619506780766209": {
+                    "offlinePing": false
+                }
+            }
+        },
+        "11": {
+            "title": "AoE",
+            "description": "Age of Empires",
+            "aliases": [
+                "aoe"
+            ],
+            "members": {
+                "121671543712382976": {
+                    "offlinePing": false
+                },
+                "126172702812798986": {
+                    "offlinePing": false
+                },
+                "173158969131401216": {
+                    "offlinePing": false
+                },
+                "413111143272415232": {
+                    "offlinePing": false
+                },
+                "221345797059510272": {
+                    "offlinePing": false
+                },
+                "170169769402695680": {
+                    "offlinePing": false
+                },
+                "183619506780766209": {
+                    "offlinePing": false
+                },
+                "97332387133788160": {
+                    "offlinePing": false
+                },
+                "436572969515352065": {
+                    "offlinePing": false
+                }
+            }
+        },
+        "12": {
+            "title": "tts",
+            "description": "Tabletop Simulator",
+            "aliases": [
+                "tts"
+            ],
+            "members": {
+                "226076608618823680": {
+                    "offlinePing": true
+                },
+                "126172702812798986": {
+                    "offlinePing": false
+                },
+                "173158969131401216": {
+                    "offlinePing": false
+                },
+                "170169769402695680": {
+                    "offlinePing": false
+                },
+                "118371293123969026": {
+                    "offlinePing": false
+                }
+            }
+        },
+        "13": {
+            "title": "PD2",
+            "description": "Payday 2",
+            "aliases": [
+                "pd2"
+            ],
+            "members": {
+                "121671543712382976": {
+                    "offlinePing": true
+                },
+                "126172702812798986": {
+                    "offlinePing": false
+                },
+                "226076608618823680": {
+                    "offlinePing": false
+                },
+                "248536388839014402": {
+                    "offlinePing": false
+                },
+                "144668502928654336": {
+                    "offlinePing": false
+                }
+            }
+        },
+        "14": {
+            "title": "Speedrunners",
+            "description": "No Description",
+            "aliases": [
+                "speedrunners"
+            ],
+            "members": {
+                "126172702812798986": {
+                    "offlinePing": true
+                },
+                "121671543712382976": {
+                    "offlinePing": false
+                },
+                "226076608618823680": {
+                    "offlinePing": false
+                },
+                "248536388839014402": {
+                    "offlinePing": false
+                },
+                "436572969515352065": {
+                    "offlinePing": false
+                },
+                "439879488562528257": {
+                    "offlinePing": false
+                }
+            }
+        },
+        "16": {
+            "title": "mordhau",
+            "description": "No Description",
+            "aliases": [
+                "mordhau"
+            ],
+            "members": {
+                "121671543712382976": {
+                    "offlinePing": true
+                },
+                "183619506780766209": {
+                    "offlinePing": false
+                },
+                "170169769402695680": {
+                    "offlinePing": false
+                },
+                "221345797059510272": {
+                    "offlinePing": false
+                },
+                "173158969131401216": {
+                    "offlinePing": false
+                },
+                "201097288288829451": {
+                    "offlinePing": false
+                }
+            }
+        },
+        "18": {
+            "title": "vermintide",
+            "description": "No Description",
+            "aliases": [
+                "vermintide"
+            ],
+            "members": {
+                "226076608618823680": {
+                    "offlinePing": false
+                },
+                "170169769402695680": {
+                    "offlinePing": false
+                }
+            }
+        },
+        "19": {
+            "title": "deceit",
+            "description": "No Description",
+            "aliases": [
+                "deceit"
+            ],
+            "members": {}
         }
     },
-    "1": {
-        "title": "hots",
-        "description": "Heroes of the Storm",
-        "aliases": [
-            "hots"
-        ],
-        "members": {
-            "118371293123969026": {
-                "offlinePing": false
-            },
-            "121671543712382976": {
-                "offlinePing": false
-            },
-            "126172702812798986": {
-                "offlinePing": false
-            },
-            "413111143272415232": {
-                "offlinePing": false
-            },
-            "173158969131401216": {
-                "offlinePing": false
-            },
-            "226076608618823680": {
-                "offlinePing": false
-            },
-            "248536388839014402": {
-                "offlinePing": true
-            },
-            "109451597423091712": {
-                "offlinePing": false
-            },
-            "439879488562528257": {
-                "offlinePing": false
-            },
-            "221345797059510272": {
-                "offlinePing": true
-            },
-            "183619506780766209": {
-                "offlinePing": false
-            }
-        }
-    },
-    "2": {
-        "title": "ttt",
-        "description": "Trouble in Terrorist Town",
-        "aliases": [
-            "ttt"
-        ],
-        "members": {
-            "121671543712382976": {
-                "offlinePing": false
-            },
-            "126172702812798986": {
-                "offlinePing": false
-            },
-            "170169769402695680": {
-                "offlinePing": false
-            },
-            "413111143272415232": {
-                "offlinePing": false
-            },
-            "173158969131401216": {
-                "offlinePing": false
-            },
-            "226076608618823680": {
-                "offlinePing": false
-            },
-            "248536388839014402": {
-                "offlinePing": true
-            },
-            "133368750924759041": {
-                "offlinePing": false
-            },
-            "221345797059510272": {
-                "offlinePing": false
-            },
-            "203239014331973632": {
-                "offlinePing": true
-            },
-            "98315403670880256": {
-                "offlinePing": false
-            },
-            "104014747476705280": {
-                "offlinePing": false
-            },
-            "109451597423091712": {
-                "offlinePing": false
-            },
-            "201097288288829451": {
-                "offlinePing": false
-            },
-            "436572969515352065": {
-                "offlinePing": false
-            },
-            "144668502928654336": {
-                "offlinePing": true
-            }
-        }
-    },
-    "3": {
-        "title": "owtc",
-        "description": "Offworld Trading Company",
-        "aliases": [
-            "owtc"
-        ],
-        "members": {
-            "121671543712382976": {
-                "offlinePing": false
-            },
-            "170169769402695680": {
-                "offlinePing": false
-            },
-            "173158969131401216": {
-                "offlinePing": false
-            },
-            "248536388839014402": {
-                "offlinePing": false
-            },
-            "221345797059510272": {
-                "offlinePing": false
-            },
-            "436572969515352065": {
-                "offlinePing": true
-            }
-        }
-    },
-    "4": {
-        "title": "RoR",
-        "description": "Risk of Rain !",
-        "aliases": [
-            "ror"
-        ],
-        "members": {
-            "436572969515352065": {
-                "offlinePing": true
-            },
-            "248536388839014402": {
-                "offlinePing": false
-            },
-            "121671543712382976": {
-                "offlinePing": false
-            },
-            "118371293123969026": {
-                "offlinePing": false
-            },
-            "126172702812798986": {
-                "offlinePing": false
-            },
-            "133368750924759041": {
-                "offlinePing": false
-            },
-            "122063202321301504": {
-                "offlinePing": false
-            },
-            "170169769402695680": {
-                "offlinePing": false
-            },
-            "109451597423091712": {
-                "offlinePing": false
-            },
-            "173158969131401216": {
-                "offlinePing": false
-            }
-        }
-    },
-    "5": {
-        "title": "40k",
-        "description": "Warhammer 40k",
-        "aliases": [
-            "40k"
-        ],
-        "members": {
-            "121671543712382976": {
-                "offlinePing": false
-            },
-            "126172702812798986": {
-                "offlinePing": false
-            },
-            "226076608618823680": {
-                "offlinePing": true
-            },
-            "109451597423091712": {
-                "offlinePing": false
-            }
-        }
-    },
-    "6": {
-        "title": "CivVI",
-        "description": "Sid Meier's Civilization VI",
-        "aliases": [
-            "civvi"
-        ],
-        "members": {
-            "121671543712382976": {
-                "offlinePing": false
-            },
-            "170169769402695680": {
-                "offlinePing": false
-            },
-            "126172702812798986": {
-                "offlinePing": false
-            },
-            "109451597423091712": {
-                "offlinePing": false
-            },
-            "121680627773734912": {
-                "offlinePing": false
-            }
-        }
-    },
-    "7": {
-        "title": "factorio",
-        "description": "No Description",
-        "aliases": [
-            "factorio"
-        ],
-        "members": {
-            "436572969515352065": {
-                "offlinePing": true
-            },
-            "121671543712382976": {
-                "offlinePing": false
-            },
-            "126172702812798986": {
-                "offlinePing": false
-            },
-            "144668502928654336": {
-                "offlinePing": true
-            }
-        }
-    },
-    "8": {
-        "title": "fans_of_pwpg_bot",
-        "description": "No Description",
-        "aliases": [
-            "fans_of_pwpg_bot"
-        ],
-        "members": {
-            "436572969515352065": {
-                "offlinePing": false
-            },
-            "170169769402695680": {
-                "offlinePing": false
-            },
-            "413111143272415232": {
-                "offlinePing": false
-            },
-            "144668502928654336": {
-                "offlinePing": false
-            }
-        }
-    },
-    "9": {
-        "title": "DRG",
-        "description": "Deep Rock Galactic",
-        "aliases": [
-            "drg"
-        ],
-        "members": {
-            "170169769402695680": {
-                "offlinePing": false
-            },
-            "126172702812798986": {
-                "offlinePing": false
-            },
-            "133368750924759041": {
-                "offlinePing": false
-            },
-            "121671543712382976": {
-                "offlinePing": false
-            },
-            "226076608618823680": {
-                "offlinePing": false
-            },
-            "144668502928654336": {
-                "offlinePing": false
-            }
-        }
-    },
-    "10": {
-        "title": "*",
-        "description": "Wildcard group. Ping for \"anything\"",
-        "aliases": [
-            "*"
-        ],
-        "members": {
-            "121671543712382976": {
-                "offlinePing": true
-            },
-            "170169769402695680": {
-                "offlinePing": false
-            },
-            "226076608618823680": {
-                "offlinePing": false
-            },
-            "183619506780766209": {
-                "offlinePing": false
-            }
-        }
-    },
-    "11": {
-        "title": "AoE",
-        "description": "Age of Empires",
-        "aliases": [
-            "aoe"
-        ],
-        "members": {
-            "121671543712382976": {
-                "offlinePing": false
-            },
-            "126172702812798986": {
-                "offlinePing": false
-            },
-            "173158969131401216": {
-                "offlinePing": false
-            },
-            "413111143272415232": {
-                "offlinePing": false
-            },
-            "221345797059510272": {
-                "offlinePing": false
-            },
-            "170169769402695680": {
-                "offlinePing": false
-            },
-            "183619506780766209": {
-                "offlinePing": false
-            },
-            "97332387133788160": {
-                "offlinePing": false
-            },
-            "436572969515352065": {
-                "offlinePing": false
-            }
-        }
-    },
-    "12": {
-        "title": "tts",
-        "description": "No Description",
-        "aliases": [
-            "tts"
-        ],
-        "members": {
-            "226076608618823680": {
-                "offlinePing": true
-            },
-            "126172702812798986": {
-                "offlinePing": false
-            },
-            "173158969131401216": {
-                "offlinePing": false
-            },
-            "170169769402695680": {
-                "offlinePing": false
-            }
-        }
-    },
-    "13": {
-        "title": "PD2",
-        "description": "Payday 2",
-        "aliases": [
-            "pd2"
-        ],
-        "members": {
-            "121671543712382976": {
-                "offlinePing": true
-            },
-            "126172702812798986": {
-                "offlinePing": false
-            },
-            "226076608618823680": {
-                "offlinePing": false
-            },
-            "248536388839014402": {
-                "offlinePing": false
-            },
-            "144668502928654336": {
-                "offlinePing": false
-            }
-        }
-    },
-    "14": {
-        "title": "Speedrunners",
-        "description": "No Description",
-        "aliases": [
-            "speedrunners"
-        ],
-        "members": {
-            "126172702812798986": {
-                "offlinePing": true
-            },
-            "121671543712382976": {
-                "offlinePing": false
-            },
-            "226076608618823680": {
-                "offlinePing": false
-            },
-            "248536388839014402": {
-                "offlinePing": false
-            },
-            "436572969515352065": {
-                "offlinePing": false
-            },
-            "439879488562528257": {
-                "offlinePing": false
-            }
-        }
-    },
-    "16": {
-        "title": "mordhau",
-        "description": "No Description",
-        "aliases": [
-            "mordhau"
-        ],
-        "members": {
-            "121671543712382976": {
-                "offlinePing": true
-            },
-            "183619506780766209": {
-                "offlinePing": false
-            }
+    "553327085066911774": {
+        "1": {
+            "title": "test",
+            "description": "No Description",
+            "aliases": [
+                "test",
+                "1",
+                "2",
+                "3",
+                "4"
+            ],
+            "members": {}
         }
     }
 }
