@@ -177,8 +177,8 @@ class CardManager():
     def playCard(self, pos: int):
         card = self.hand.pop(pos)
         self.gameBoard.append(card)
-        self.dicardPile.extend(self.hand)
-        return gameBoard
+        self.discardPile.extend(self.hand)
+        return self.gameBoard
 
 class PlayerManager():
     """Manages all Player related components.
@@ -253,10 +253,10 @@ class PlayerManager():
                 print('New Current Position: ' + str(self.currentPosition))
                 return self.currentPosition
             else:
-                advancePlayerPosition()
+                self.advancePlayerPosition()
         else:
             self.currentPosition = -1 # reset to the start of the list
-            advancePlayerPosition()
+            self.advancePlayerPosition()
 
     def assignPlayerRoles(self, context):
         """Takes all users in the lobbyList and turns them into Players for the playerList"""
