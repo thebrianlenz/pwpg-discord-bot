@@ -1,3 +1,17 @@
+"""Used for creating, accessing, and managing groups.
+    
+    GroupManager functions as an extension for a Discord.py bot. This 
+    includes the GroupManager Cog, which handles all associated commands 
+    and are registered with the bot that loads this extension.
+
+    This extension creates and reads from a file for Groups of users seperated
+    by Guild ID. This file is saved as groupsData.json in the local directory.
+    These groups can be accessed by users to alert other members of a group, 
+    usually for playing games. Requires asyncio and discord.py libraries.
+
+    This extension should likely not be loaded as a Python module.
+"""
+
 from discord.ext import commands
 from discord.ext.commands import Bot
 from discord.ext.commands import MemberConverter
@@ -7,6 +21,7 @@ import discord
 import asyncio
 import json
 import re
+from MessageIO import *
 
 GROUP_FILE = 'groupsData.json'
 
@@ -21,21 +36,15 @@ class GroupUserNotInGroupError(commands.BadArgument): pass
 class GroupEditingOtherThanSelfError(commands.BadArgument): pass
 class UserNotFound(commands.BadArgument): pass
 
-#       √ Remove the 'No Description' message on command repsonses
 #       Delete group confirmation
-#       √ List all of a single user's groups
-#       √ Cooldown on group creation
-#           Needs better error management, doesn't feel very clean
-#       Case insensitivity when join/leave
-#       √ Convert user data to the unique identifier (snowflake?) for save and eval
 #       Temporary group mute for a user
 #       √ Offline ping preference setting
 #           Needs a refactor for more/smarter preferences
-#       √ BUG the write loop should be refactored back to on-call writing?
 #       Expand on error handling to inclue more information (command causing the error, etc)
 
 class GroupManager(commands.Cog):
-
+    """
+    """
     def __init__(self, bot: Bot):
         self.bot = bot
         readGroupData()
@@ -88,7 +97,7 @@ class GroupManager(commands.Cog):
                       invoke_without_command=True,
                       rest_is_raw=True,
                       pass_context=True)
-    async def listGroupsCommand(self, context, groupName=''):
+    async def listCommand(self, context, groupName=''):
         # Temp string to build the message
         messageToSend = ''
         
@@ -107,6 +116,7 @@ class GroupManager(commands.Cog):
                 if groupData[str(context.guild.id)][group_id]['description'] != 'No Description':
                     messageToSend += groupData[str(context.guild.id)][group_id]['description']
                 
+                messageToSend += f'\n\tAlternate Names: {groupData[str(context.guild.id)][group_id]["aliases"]}'
                 messageToSend += '\n\tMembers: ' + str(len(groupData[str(context.guild.id)][group_id]['members'])) + '\n'
         
         # If we find a valid group id, print all members
@@ -230,23 +240,6 @@ class GroupManager(commands.Cog):
         else:
             return
 
-    # Edits an existing group's description
-    @commands.cooldown(1, 30, commands.BucketType.user)
-    @commands.command(name='edit',
-                    description='Edit an existing group\'s description. No quotations are needed.',
-                    brief='Edit a group description',
-                    aliases=['editgroup', 'editdesc'],
-                    pass_context=True)
-    async def editGroupDescriptionCommand(self, context, groupName, *, description=None):
-        if description is None:
-            if editGroupDescription(context, groupName, 'No Description'):
-                await context.send(f'The description for `{getGroupTitle(context, groupName)}` has been removed.')
-            return
-        else:
-            if editGroupDescription(context, groupName, description):
-                await context.send(f'The description for `{getGroupTitle(context, groupName)}` has been updated.')
-            return
-
     # Edit a user's group preference
     @commands.command(name='myprefs',
                     description='Edit your preferences for a group. Currently includes: \nOffline Ping:\t Receiving Pings when offline',
@@ -271,35 +264,57 @@ class GroupManager(commands.Cog):
         await context.message.delete()
         await context.send('The word "waffle" first appears in the English language in 1725', delete_after=180)
 
-    @commands.command(name='testid', hidden=True)
-    async def testid(self, context, groupName):
+    @commands.command(name='testadd', hidden=True)
+    async def testadd(self, context, groupName):
         #rebuildGroupsData()
         #await promptForGroupDetails(context, groupName)
         await promptForAliasAddition(context, groupName)
 
+    @commands.command(name='testdelete', hidden=True)
+    async def testdelete(self, context, groupName):
+        #rebuildGroupsData()
+        #await promptForGroupDetails(context, groupName)
+        await promptForAliasDeletion(context, groupName)
+
     @commands.group(name='group',
-                      description='Manage group properties: Title, Aliases, or Description',
+                      description='Manage all of a group\'s properties: Title, Aliases, or Description. Use flags before the group name to edit individual properties',
                       brief='Manage group properties',
                       invoke_without_command=True,
                       pass_context=True)
     async def manageGroupCommand(self, context, groupName: str):
-        print('group command')
-        print(groupName)
+        await promptForGroupDetails(context, groupName)
+        return
+
+    @manageGroupCommand.group(name='-title',
+                                description='Change a group\'s title. Capitilization and spacing will be preserved for display.',
+                                brief='Edit a group\'s title',
+                                pass_context=True)
+    async def editGroupTitleCommand(self, context, groupName: str, *, newTitle: str):
+        await editGroupTitle(context, groupName, newTitle)
+        return
+
+    @manageGroupCommand.group(name='-description',
+                                description='Change a group\'s description. Capitilization and spacing will be preserved.',
+                                brief='Edit a group\'s description',
+                                aliases=['-desc'],
+                                pass_context=True)
+    async def editGroupDescriptionCommand(self, context, groupName: str, *, newTitle: str):
+        await editGroupDescription(context, groupName, newTitle)
         return
 
     @manageGroupCommand.group(name='-alias',
-                                description='Manage group aliases. Use -add or -delete for quick management.',
-                                brief='Manage group aliases.',
+                                description='Manage a group\'s aliases. Enter a group name to prompt bulk addition and removal. Use -add or -delete for quick management.',
+                                brief='Manage a group\'s aliases.',
                                 invoke_without_command=True,
                                 pass_context=True)
     async def aliasCommand(self, context, groupName: str):
-        print('alias command')
-        print(getGroupAliases(context, groupName))
+        await promptForAliasManagement(context, groupName)
         return
 
     @aliasCommand.command(name='-add',
-                          description='Add an alias to an existing group.',
-                          brief='Add an alias.',
+                          description='Add a single alias to an existing group.',
+                          brief='Add an alias to a group.',
+                          aliases=['-a'],
                           pass_context=True)
     async def aliasCommandAdd(self, context, groupName: str, *, newAlias: str):
         if addAliasToGroup(context, groupName, newAlias):
@@ -307,21 +322,31 @@ class GroupManager(commands.Cog):
         return
 
     @aliasCommand.command(name='-delete',
-                          description='Delete an alias from an existing group.',
-                          brief='Delete an alias.',
+                          description='Delete a single alias from an existing group.',
+                          brief='Delete an alias from a group.',
+                          aliases=['-del'],
                           pass_context=True)
     async def aliasCommandDelete(self, context, groupName: str, *, newAlias: str):
-        title = getGroupTitle(context, groupName)
         if deleteAliasFromGroup(context, groupName, newAlias):
-            await context.send(f'The alias `{newAlias}` has been deleted from `{title}`.')
+            await context.send(f'The alias `{newAlias}` has been deleted from `{getGroupTitle(context, groupName)}`.')
         return
 
 
-# Creates associated prompts for changing a group's title
-# Waits for inputs
-# Returns the new title, or False
 async def promptForNewTitle(context, groupName: str):
-    if await promptAndWaitYesOrNo(context, f'Edit the Title of the group? Current title is: \n \t`{getGroupTitle(context, groupName)}`'):
+    """Creates a prompt for a new Title for the given Group.
+    
+    This command includes prompts for ensuring the correct group is being edited, 
+    acceptance of a new group title, 
+    and confirmation of the new name
+    
+    Parameters
+    ----------
+    context : context
+        The context from the invoked command
+    groupName : str
+        The name of the group being edited
+    """
+    if await promptForThumbs(context, f'Edit the Title of the group?\nCurrent title is: `{getGroupTitle(context, groupName)}`'):
         newTitleInput = await promptAndWaitForInput(context, 'Please enter a new Title. Capitilization and spacing is preserved', True)
 
         if newTitleInput is not False:
@@ -337,15 +362,27 @@ async def promptForNewTitle(context, groupName: str):
     else:
         return False
 
-# Creates associated prompts for changing a group's description
-# Waits for inputs
-# Returns the new description or False
 async def promptForNewDescription(context, groupName: str):
-
-    currentDescription = groupData[str(context.guild.id)][getGroupNameId(context, groupName)]['description']
+    """Creates a prompt for a new Description for the given Group.
     
-    # ask to change description TODO: display current description
-    if await promptAndWaitYesOrNo(context, f'Edit the Description of `{getGroupTitle(context, groupName)}`?\n'
+    This command includes prompts for ensuring the correct group is being edited, 
+    acceptance of a new group description, 
+    and confirmation of the new description
+    
+    Parameters
+    ----------
+    context : context
+        The context from the invoked command
+    groupName : str
+        The name of the group being edited
+
+    Returns
+    -------
+    newDescriptionInput : str
+        The newly entered text. Returns False if cancelled or failed
+    """
+    currentDescription = groupData[str(context.guild.id)][getGroupNameId(context, groupName)]['description']
+    if await promptForThumbs(context, f'Edit the Description of `{getGroupTitle(context, groupName)}`?\n'
                                             f'Current Description is `{currentDescription}`'):
         newDescriptionInput = await promptAndWaitForInput(context, 'Please enter a new Description')
         if newDescriptionInput is False:
@@ -354,35 +391,111 @@ async def promptForNewDescription(context, groupName: str):
         if editGroupDescription(context, groupName, newDescriptionInput):
             await context.send(f'New description, `{newDescriptionInput}`, has been confirmed')
             return newDescriptionInput     
-    else:
-        if await promptAndWaitYesOrNo(context, f'Try again?'):
+        elif await promptForThumbs(context, f'Try again?'):
            return await promptForNewDescription(context, groupName)
         else:
             return False
+    else:
+        return False
 
 async def promptForAliasAddition(context, groupName: str):
-    #rawAliasString = await promptAndWaitForInput(context, f'Enter new aliases seperated by commas. Spacing, symbols, and capitilzation are ignored.')
-    responseMessage = await promptForInput(context, f'Enter new aliases seperated by commas. Spacing, symbols, and capitilzation are ignored.')
-    aliasList = [x.strip() for x in responseMessage.content.split(',')]
-    if await promptAndWaitYesOrNo(context, f'Attempting to add aliases to `{getGroupTitle(context, groupName)}`:\n`{aliasList}`'):
-        for a in aliasList:
-            addAliasToGroup(context, groupName, nameCleanUp(a))
-    else:
-        print('dont')
-    # if rawAliasString is not False and groupNameInUse(context, groupName):
-    #     aliasList = rawAliasString.split(',')
-    #     for a in aliasList:
-    #         addAliasToGroup(context, groupName, nameCleanUp(a))
+    """Creates the prompts for adding new Aliases to a group.
+    
+    This command includes prompts for ensuring the correct group is being edited, 
+    acceptance of aliases to be added to the group, 
+    and confirmation of the aliases to be added.
+
+    Confirms the aliases that were successfully added.
+    
+    Parameters
+    ----------
+    context : context
+        The context from the invoked command
+    groupName : str
+        The name of the group being edited
+    """
+    if groupNameInUse(context, groupName):
+        responseMessage = await promptForInput(context, f'Enter new aliases for `{getGroupTitle(context, groupName)}` seperated by commas. Spacing, symbols, and capitilzation are ignored.')
+        aliasList = [x.strip() for x in responseMessage.content.split(',')]
+        if await promptForThumbs(context, f'Attempting to add aliases to `{getGroupTitle(context, groupName)}`:\n`{aliasList}`\nConfirm?'):
+            addedAliases = []
+            for a in aliasList:
+                if addAliasToGroup(context, groupName, nameCleanUp(a)):
+                    addedAliases.append(a)
+        else:
+            await context.send('Operation cancelled')
+    else: raise GroupDoesNotExistError(groupName)
+    await context.send(f'Aliases `{addedAliases}` have been added to `{getGroupTitle(context, groupName)}`')
+
+async def promptForAliasDeletion(context, groupName: str):
+    """Creates the prompts for deleting Aliases from a group.
+    
+    This command includes prompts for ensuring the correct group is being edited, 
+    acceptance of aliases to be deleted from the group, 
+    and confirmation of the aliases to be deleted.
+
+    Confirms the aliases that were successfully deleted.
+    
+    Parameters
+    ----------
+    context : context
+        The context from the invoked command
+    groupName : str
+        The name of the group being edited
+    """
+    if groupNameInUse(context, groupName):
+        responseMessage = await promptForInput(context, f'Enter aliases to delete from `{getGroupTitle(context, groupName)}` seperated by commas. Spacing, symbols, and capitilzation are ignored.'
+                                                        f'\nCurrent aliases are: `{getGroupAliases(context, groupName)}`')
+        aliasList = [x.strip() for x in responseMessage.content.split(',')]
+        if await promptForThumbs(context, f'Attempting delete aliases from `{getGroupTitle(context, groupName)}`:\n`{aliasList}`\nConfirm?'):
+            removedAliases = []
+            for a in aliasList:
+                if deleteAliasFromGroup(context, groupName, nameCleanUp(a)):
+                    removedAliases.append(a)
+        else:
+            await context.send('Operation cancelled')
+    else: raise GroupDoesNotExistError(groupName)
+    await context.send(f'Aliases `{removedAliases}` have been deleted from `{getGroupTitle(context, groupName)}`')
+
+async def promptForAliasManagement(context, groupName: str):
+    """Creates the prompts for both adding and removing Aliases.
+    
+    This is a simple helper that calls both promptForAliasAddition and promptForAliasDeletion.
+
+    Asks if the user wants to use the prompts.
+    
+    Parameters
+    ----------
+    context : context
+        The context from the invoked command
+    groupName : str
+        The name of the group being edited
+    """
+    if await promptForThumbs(context, f'Add or remove aliases?\n'
+                                        f'Current aliases for `{getGroupTitle(context, groupName)}` are `{getGroupAliases(context, groupName)}`.'):
+        if await promptForThumbs(context, f'Add new aliases?'):
+            await promptForAliasAddition(context, groupName)
+        if await promptForThumbs(context, f'Delete existing aliases?'):
+            await promptForAliasDeletion(context, groupName)
 
 async def promptForGroupDetails(context, groupName: str):
-    global groupData
-    group_id = getGroupNameId(context, groupName)
+    """Wraps all associated group editing prompts into a single method.
 
-    if group_id is False: raise GroupDoesNotExistError(groupName)
+    Ensures the groupName is in use, asks if the user wishes to edit the group, 
+    then asks and prompts for editing: Title, Description, and Aliases
+    
+    Parameters
+    ----------
+    context : context
+        The context from the invoked command
+    groupName : str
+        The name of the group being edited
+    """
+    if groupNameInUse(context, groupName) is False: raise GroupDoesNotExistError(groupName)
     else:
         # confirm group title to edit
         question = f'Would you like to edit `{getGroupTitle(context, groupName)}`?'
-        if await promptAndWaitYesOrNo(context, question):
+        if await promptForThumbs(context, question):
 
             newTitleResult = await promptForNewTitle(context, groupName)
 
@@ -391,82 +504,41 @@ async def promptForGroupDetails(context, groupName: str):
             
             await promptForNewDescription(context, groupName)
 
-
-            # ask to add or remove aliases TODO: display active aliases
-            if await promptAndWaitYesOrNo(context, f'Add or remove aliases?'):
-                # prompt for adding or removing some how
-                pass
+            await promptForAliasManagement(context, groupName)
         else:
             await context.send('Editing cancelled')
 
+async def promptAndWaitForInput(context, prompt: str, validateGroupExistence = False):
+    """Provides a prompt that includes validating a group's existance before confirmation.
 
-# Takes in a string and prompts the message
-# Waits for a message to be sent from the user
-# Confirms the input
-async def promptAndWaitForInput(context, message: str, validateGroupExistence = False):
+    This likely should be deprecated and replaced with a more generic command usage. 
+    As it stands, this passes through to promptForInput from MessageIO, then can perform 
+    a basic check for usage and reprompting.
     
-    def check(inputMessage):
-        return inputMessage.author is context.author
-
-    promptedMessage = await context.send(f'{message}')
-    try:
-        inputMessage = await context.bot.wait_for("message", check = check, timeout = 60.0)
-    except asyncio.TimeoutError:
-        await promptedMessage.delete()
-        await context.send(f'Please input your text quicker! Skipping Input')
-        return False
+    Parameters
+    ----------
+    context : context
+        The context from the invoked command
+    prompt : str
+        The prompt to be presented to the user
+    validateGroupExistence : bool, optional
+        Flags usage of a group existence check. If failed, it will reprompt before continuing.
+        (default is False)
+    """
+    inputMessage = await promptForInput(context, prompt)
 
     if validateGroupExistence and groupNameInUse(context, inputMessage.content):
         await context.send(f'The name `{inputMessage.content}` is already in use. Please try again')
-        return await promptAndWaitForInput(context, message, validateGroupExistence)
+        return await promptAndWaitForInput(context, prompt, validateGroupExistence)
 
     confirmText = f'`{inputMessage.content}` - Please confirm, {context.author.name}'
-    if await promptAndWaitYesOrNo(context, confirmText):
+    if await promptForThumbs(context, confirmText):
         return inputMessage.content
     else:
-        if await promptAndWaitYesOrNo(context, "Try again?"):
-            return await promptAndWaitForInput(context, message, validateGroupExistence)
+        if await promptForThumbs(context, "Try again?"):
+            return await promptAndWaitForInput(context, prompt, validateGroupExistence)
         else:
             return False
-
-async def promptForInput(context, prompt: str):
-    def check(inputMessage):
-        return inputMessage.author is context.author
-
-    promptedMessage = await context.send(f'{prompt}')
-    try:
-        return await context.bot.wait_for("message", check = check, timeout = 60.0)
-    except:
-        await promptedMessage.delete()
-        await context.send(f'Input has timed out, skipping input')
-        return False
-
-# Takes in a string and prompts the message
-# Adds thumbs up and down
-# Waits for a up or down from the user that prompted the message
-# Returns True for Up, False for Down
-# Also returns false if timed-out
-async def promptAndWaitYesOrNo(context, message: str):
-    def check(reaction, user):
-        return user is context.author and reaction.emoji in ['👍', '👎'] and reaction.message.id == promptedText.id
-
-    promptedText = await context.send(f'{message}')
-    await promptedText.add_reaction('👍')
-    await promptedText.add_reaction('👎')
-
-    try:
-        reaction, _user = await context.bot.wait_for("reaction_add", timeout = 10.0, check = check)
-    except asyncio.TimeoutError:
-        await promptedText.delete()
-        await context.send(f'Please select a response quicker!')
-        return False
-
-    if reaction.emoji == '👍':
-        await promptedText.clear_reactions()
-        return True
-    elif reaction.emoji == '👎':
-        await promptedText.clear_reactions()
-        return False
 
 # Edits the description of a group
 # Edits an existing group's description
@@ -526,8 +598,8 @@ def addAliasToGroup(context, groupName: str, newAlias: str):
     group_id = getGroupNameId(context, groupName)
     alias_id = getGroupNameId(context, newAlias)
 
-    if group_id is False: raise GroupDoesNotExistError(groupName)
-    elif alias_id is not False: raise GroupAlreadyExistsError(newAlias)
+    if group_id is False: return False
+    elif alias_id is not False: return False
     else:
         guild[group_id]['aliases'].append(nameCleanUp(newAlias))
         writeGroupData()
@@ -544,7 +616,7 @@ def deleteAliasFromGroup(context, groupName: str, aliasToDelete: str):
     alias_id = getGroupNameId(context, aliasToDelete)
 
     if group_id is False: raise GroupDoesNotExistError(groupName)
-    elif alias_id is False: raise GroupDoesNotExistError(aliasToDelete)
+    elif alias_id is False: return False
     elif group_id != alias_id: raise GroupEditingOtherThanSelfError(aliasToDelete, alias_id)
     elif nameCleanUp(aliasToDelete) == nameCleanUp(getGroupTitle(context, groupName)):
         print('cant delete title alias')
@@ -611,7 +683,6 @@ def removeGroup(context, groupName: str):
         return True
     else:
         raise GroupDoesNotExistError(groupName)
-
 
 # Add author to a group
 # Returns false if no matching group name or in group already

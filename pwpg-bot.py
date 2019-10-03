@@ -7,7 +7,6 @@ from configparser import ConfigParser
 import discord
 from discord.ext import commands
 from discord.ext.commands import Bot
-import GroupManager
 
 BOT_PREFIX = ("!","$")
 
