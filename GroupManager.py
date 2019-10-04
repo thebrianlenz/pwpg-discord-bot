@@ -9,6 +9,8 @@
     These groups can be accessed by users to alert other members of a group, 
     usually for playing games. Requires asyncio and discord.py libraries.
 
+    This extension is generally accessed through adding the GroupManager 
+    as a cog to an existing Discord.py Bot. 
     This extension should likely not be loaded as a Python module.
 """
 
@@ -43,8 +45,6 @@ class UserNotFound(commands.BadArgument): pass
 #       Expand on error handling to inclue more information (command causing the error, etc)
 
 class GroupManager(commands.Cog):
-    """
-    """
     def __init__(self, bot: Bot):
         self.bot = bot
         readGroupData()
@@ -540,24 +540,74 @@ async def promptAndWaitForInput(context, prompt: str, validateGroupExistence = F
         else:
             return False
 
-# Edits the description of a group
-# Edits an existing group's description
-# Returns false if the group doesn't exist
 def editGroupDescription(context, groupName: str, description: str):
-    global groupData
+    """Replaces the existing Description for a Group with a provided one.
+
+    Finds a group within the guild and replaces the exsting description 
+    with one passed in. The group data file is then written with the 
+    updated description. Returns True if successful or raises
+    GroupDoesNotExistError
+
+    Parameters
+    ----------
+    context : context
+        The context from the invoked command
+    groupName : str
+        The name of the group that will be edited
+    description : str
+        The new description to be used for groupName
+
+    Returns
+    -------
+    bool
+        True if the description is successfully set
+
+    Raises
+    ------
+    GroupDoesNotExistError
+        Raised if the group name provided does not exist
+
+    """
+    guild = groupData[str(context.guild.id)]
     group_id = getGroupNameId(context, groupName)
 
     if group_id is not False:
-        groupData[str(context.guild.id)][group_id]['description'] = description
+        guild[group_id]['description'] = description
         writeGroupData()
         return True
     else:
         raise GroupDoesNotExistError(groupName)
 
-# Replaces the title of a group with another
-# Also updates alias list to reflect new title
-# Writes to groupData
 def editGroupTitle(context, groupName: str, newTitle: str):
+    """Replaces the existing Title for a Group with a provided one.
+
+    Finds a group within the guild of groupName and sets the Title to 
+    newTitle. If successful, data is written to groupData file and returns True. 
+    If the groupName to be edited does not exist, raises GroupDoesNotExistError. 
+    If the newTitle to be used already is in use, raises GroupAlreadyExistsError.
+
+    Parameters
+    ----------
+    context : context
+        The context from the invoked command
+    groupName : str
+        The name of the group that will be edited
+    newTitle : str
+        The new title to be used groupName
+
+    Returns
+    -------
+    bool
+        True if the title is successfully set
+
+    Raises
+    ------
+    GroupDoesNotExistError
+        Raised if groupName does not exist
+    GroupAlreadyExistsError
+        Raised if the newTitle is already in use
+
+    """
     global groupData
     group_id = getGroupNameId(context, groupName)
     if group_id is False:
@@ -571,29 +621,69 @@ def editGroupTitle(context, groupName: str, newTitle: str):
         writeGroupData()
     return True
 
-# Creates a new group entry. Title required
-# Checks for an existing group using the Title (includes aliases)
-# Assigns a unique groupID
-# Adds the Title to it's own list of aliases
-# Writes groupData to file
 def addGroup(context, groupName: str):
-    global groupData
+    """Creates a group for users to join
+
+    Adds a group to the groupData and writes to file. If the groupName 
+    provided is already in use, GroupAlreadyExistsError is raised. 
+    The new group will only be added to the active guild. A unique ID for 
+    the group is created and used. Properties for the group include: Title,
+    Description, Aliases, and Members. Aliases is automatically populated with 
+    a stripped version of the Title. If the group is added successfully, 
+    True is returned.
+
+    Parameters
+    ----------
+    context : context
+        The context from the invoked command
+    groupName : str
+        The name of the group that will be created
+
+    Returns
+    -------
+    bool
+        True if the group is successfully created
+
+    Raises
+    ------
+    GroupAlreadyExistsError
+        Raised if the group name provided is already in use
+
+    """
+    guild = groupData[str(context.guild.id)]
+
     if getGroupNameId(context, groupName) is not False: raise GroupAlreadyExistsError(groupName)
     else:
-        idList = [int(i) for i in groupData[str(context.guild.id)].keys()]
+        idList = [int(i) for i in guild.keys()]
         groupID = max(idList, default=0) + 1
         aliases = []
         aliases.insert(0, nameCleanUp(groupName))
-        groupData[str(context.guild.id)][groupID] = {'title':groupName, 'description': 'No Description', 'aliases': aliases, 'members': {}}
+        guild[groupID] = {'title':groupName, 'description': 'No Description', 'aliases': aliases, 'members': {}}
         writeGroupData()
     return True
 
-# Adds an alias to a specific group
-# Checks to be sure the group exists
-# Checks to be sure that the alias isn't already in use
-# Appends a cleaned version of newAlias to aliases
-# Writes groupData to file
 def addAliasToGroup(context, groupName: str, newAlias: str):
+    """Adds a new Alias to a Group
+
+    Takes newAlias and adds it to the list of aliases for groupName. If the groupName 
+    is not in use, or, the newAlias is already in use, returns False. Otherwise, if the 
+    alias is added successfully, True is returned and groupData is written to file.
+
+    Parameters
+    ----------
+    context : context
+        The context from the invoked command
+    groupName : str
+        The name of the group that will be edited
+    newAlias : str
+        The alias to be added to groupName
+
+    Returns
+    -------
+    bool
+        True if the alias is successfully added
+        False if the groupName is not valid, or newAlias is already in use.
+    """
     guild = groupData[str(context.guild.id)]
     group_id = getGroupNameId(context, groupName)
     alias_id = getGroupNameId(context, newAlias)
@@ -605,12 +695,44 @@ def addAliasToGroup(context, groupName: str, newAlias: str):
         writeGroupData()
         return True
 
-# Deletes an alias from a group
-# Passes in a groupName to be sure we aren't deleting from a different group
-# Checks to be sure the group and alias exist
-# Disallow deletion of the title alias TODO: add an error message for trying to remove title
-# Writes groupData to file
+# TODO: error message for title removal
 def deleteAliasFromGroup(context, groupName: str, aliasToDelete: str):
+    """Deletes an Alias from a Group
+
+    Takes newAlias and adds it to the list of aliases for groupName. If the groupName 
+    is not in use, or, the newAlias is already in use, returns False. Otherwise, if the 
+    alias is added successfully, True is returned and groupData is written to file.
+
+    If the groupName is in use, and the aliasToDelete is used within that same group, deletes 
+    the provided aliasToDelete. If the groupName is unused, raises GroupDoesNotExistError. If the 
+    aliasToDelete is unused, returns False. If the ID of the groups for groupName and aliasToDelete 
+    do not match, raises GroupEditingOtherThanSelfError. The alias created from the title of the group 
+    is also an invalid alias to delete and returns False.
+
+    Otherwise, the aliasToDelete is removed from groupName and is written to file, then returns True
+
+    Parameters
+    ----------
+    context : context
+        The context from the invoked command
+    groupName : str
+        The name of the group that will be edited
+    aliasToDelete : str
+        The alias to be deleted from groupName
+
+    Returns
+    -------
+    bool
+        True if the alias is successfully deleted
+        False if the alias does not exist or is the same as the title alias
+
+    Raises
+    ------
+    GroupDoesNotExistError
+        Raised if the groupName does not exist
+    GroupEditingOtherThanSelfError
+        Raised if the alias and group being edited are not the same ID
+    """
     guild = groupData[str(context.guild.id)]
     group_id = getGroupNameId(context, groupName)
     alias_id = getGroupNameId(context, aliasToDelete)
@@ -626,20 +748,53 @@ def deleteAliasFromGroup(context, groupName: str, aliasToDelete: str):
         writeGroupData()
         return True
 
-# Checks for a Group Name in all aliases in current guild
-# Returns the id of the group if name is already in use
-# Returns False if name is unused
 def getGroupNameId(context, groupName: str):
+    """Returns the ID of groupName
+
+    Searches through the active guild for a valid groupName. Returns the 
+    ID associated, or False if not found.
+
+    Parameters
+    ----------
+    context : context
+        The context from the invoked command
+    groupName : str
+        The name of a group to get an ID
+
+    Returns
+    -------
+    group_id : str
+        The unique ID of a group
+    bool
+        False if no valid group is found
+    """
     d = groupData[str(context.guild.id)]
     for group_id in d:
         if nameCleanUp(groupName) in d[group_id]['aliases']:
             return group_id
     return False
 
-# Checks for a Group Name in all aliases in current guild
-# Returns the Title of a group if the alias is in use
-# Returns False if the name is unused
 def getGroupTitle(context, groupName: str):
+    """Returns the full Title of groupName
+
+    Searches through the active guild for a valid groupName. Returns the 
+    full Title associated, or False if none is found.
+
+    Parameters
+    ----------
+    context : context
+        The context from the invoked command
+    groupName : str
+        The name of a group to get a Title
+
+    Returns
+    -------
+    str
+        The full Title of a group
+    bool
+        False if no valid group is found
+    """
+
     d = groupData[str(context.guild.id)]
     for group_id in d:
         if nameCleanUp(groupName) in d[group_id]['aliases']:
