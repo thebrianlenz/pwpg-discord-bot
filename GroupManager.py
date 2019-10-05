@@ -89,7 +89,7 @@ class GroupManager(commands.Cog):
         setattr(context, 'error_being_handled', False)
 
     # Return full list of all groups with member count (short descr too?)
-    @commands.cooldown(1, 5, commands.BucketType.channel)
+    @commands.cooldown(1, 2, commands.BucketType.channel)
     @commands.command(name='list',
                       description='List all groups. To see members of a specific group, include the group name.',
                       brief='List all groups, or members of a group.',
@@ -113,7 +113,7 @@ class GroupManager(commands.Cog):
                 messageToSend += groupData[str(context.guild.id)][group_id]['title'] + ': '
 
                 # Add the description if the group has one
-                if groupData[str(context.guild.id)][group_id]['description'] != 'No Description':
+                if groupData[str(context.guild.id)][group_id]['description'] not in {'No Description',"",''}:
                     messageToSend += groupData[str(context.guild.id)][group_id]['description']
 
                 messageToSend += f'\n\tAlternate Names: {groupData[str(context.guild.id)][group_id]["aliases"]}'
@@ -128,7 +128,7 @@ class GroupManager(commands.Cog):
                             )
 
             # Add the description if the group has one
-            if groupData[str(context.guild.id)][selected_group_id]['description'] != 'No Description':
+            if groupData[str(context.guild.id)][selected_group_id]['description'] not in {'No Description',"",''}:
                 messageToSend += groupData[str(context.guild.id)][selected_group_id]['description'] + '\n'
 
             messageToSend += '---------------' + '\n'
@@ -144,7 +144,7 @@ class GroupManager(commands.Cog):
         await context.send('```' + messageToSend + '```')
 
     # Returns a user's full list of memberships
-    @commands.cooldown(1, 10, commands.BucketType.channel)
+    @commands.cooldown(1, 3, commands.BucketType.channel)
     @commands.command(name='me',
                     description='List all of your group subscriptions.',
                     brief='List all of your subs',
@@ -185,7 +185,7 @@ class GroupManager(commands.Cog):
             return
 
     # Ping a group with an optional message
-    @commands.cooldown(1, 30, commands.BucketType.user)
+    @commands.cooldown(1, 10, commands.BucketType.user)
     @commands.command(name='ping',
                     description='Ping a group. Pinging sends a single message to all users in a group. ' + 'Include an optional message for the ping.',
                     brief='Ping a group',
@@ -291,7 +291,8 @@ class GroupManager(commands.Cog):
                                 brief='Edit a group\'s title',
                                 pass_context=True)
     async def editGroupTitleCommand(self, context, groupName: str, *, newTitle: str):
-        await editGroupTitle(context, groupName, newTitle)
+        if editGroupTitle(context, groupName, newTitle):
+            await context.send(f'Title updated')
         return
 
     @manageGroupCommand.group(name='-description',
@@ -299,8 +300,9 @@ class GroupManager(commands.Cog):
                                 brief='Edit a group\'s description',
                                 aliases=['-desc'],
                                 pass_context=True)
-    async def editGroupDescriptionCommand(self, context, groupName: str, *, newTitle: str):
-        await editGroupDescription(context, groupName, newTitle)
+    async def editGroupDescriptionCommand(self, context, groupName: str, *, description=""):
+        if editGroupDescription(context, groupName, description):
+            await context.send(f'Description updated')
         return
 
     @manageGroupCommand.group(name='-alias',
