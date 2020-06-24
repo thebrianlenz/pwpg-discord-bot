@@ -10,6 +10,7 @@ from botocore.exceptions import ClientError
 import requests
 
 from configparser import ConfigParser
+from functools import partial
 
 class VideoReuploader(commands.Cog):
 
@@ -30,7 +31,7 @@ class VideoReuploader(commands.Cog):
 					 client_secret = CLIENT_SECRET,
 					 user_agent = USER_AGENT)
 
-		aws_config = botocore.config.Config(signature_version = botocore.UNSIGNED)
+		#aws_config = botocore.config.Config(signature_version = botocore.UNSIGNED)
 		self.aws_client = boto3.client('s3',
 							#config = aws_config,
 							aws_access_key_id = AWS_ACCESS_KEY_ID,
@@ -42,14 +43,15 @@ class VideoReuploader(commands.Cog):
 	async def check_aws(self, context, target_url):
 		try:
 			print('waiting for grab_vreddit')
-			await asyncio.gather(self.grab_vreddit(target_url))
+			to_run = partial(self.grab_vreddit, target_url)
+			result = await self.bot.loop.run_in_executor(None, to_run)
+			print(result)
 		#url = self.grab_vreddit(self.get_submission_object(target_url))
 		except Exception as e:
-			print('timed out')
 			print(e)
 		#context.send(url)
 
-	async def grab_vreddit(self, target_url):
+	def grab_vreddit(self, target_url):
 		# Grabs the title from the reddit submission
 		# Determines extension when downloaded with ydl
 		submission = self.get_submission_object(target_url)
@@ -92,9 +94,6 @@ class VideoReuploader(commands.Cog):
 
 	def aws_locate(self, file_path):
 		try:
-			aws_object = self.aws_client.get_object(Bucket = self.AWS_BUCKET,
-										Key = f'{file_path}')
-
 			url = self.aws_client.generate_presigned_url('get_object',
 												Params = {'Bucket' : self.AWS_BUCKET,
 															'Key' : file_path},
@@ -102,6 +101,7 @@ class VideoReuploader(commands.Cog):
 			
 			return self.clean_aws_url(url)
 		except ClientError as e:
+			print(e)
 			return None
 		pass
 
