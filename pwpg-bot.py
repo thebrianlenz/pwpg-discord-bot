@@ -2,6 +2,7 @@
 import asyncio
 import sys
 import traceback
+import aiosqlite
 from configparser import ConfigParser
 
 import discord
@@ -17,7 +18,8 @@ config.read('config.ini')
 TOKEN = config.get('main', 'token')
 
 initial_modules = [
-        'GroupManager'
+        'GroupManager',
+        'StatsManager'
         ]
 
 @client.event

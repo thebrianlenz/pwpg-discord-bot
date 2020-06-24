@@ -494,14 +494,29 @@
     },
     "553327085066911774": {
         "1": {
-            "title": "test",
+            "title": "Here's a Test Group",
+            "description": "Here's a new Description",
+            "aliases": [
+                "heresatestgroup",
+                "testgroup",
+                "anewtest"
+            ],
+            "members": {}
+        },
+        "2": {
+            "title": "poop",
             "description": "No Description",
             "aliases": [
-                "test",
-                "1",
-                "2",
-                "3",
-                "4"
+                "poop"
+            ],
+            "members": {}
+        },
+        "3": {
+            "title": "butt",
+            "description": "No Description",
+            "aliases": [
+                "cock",
+                "butt"
             ],
             "members": {}
         }
