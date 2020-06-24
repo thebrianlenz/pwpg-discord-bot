@@ -1049,7 +1049,7 @@ def nameCleanUp(name: str):
 		A sanitized version of name
 	"""
 	name = name.lower()
-	return re.sub('\W+','',name)
+	return re.sub(r'\W+','',name)
 
 async def getUserNameFromID(context, id: str):
 	"""Retrieves a user's name from their ID
@@ -1195,7 +1195,6 @@ class GroupDatabaseManager(commands.Cog):
 		elif isinstance(error, sqlite3.OperationalError):
 			print(f'Operational error - {error}')
 			self.groups_db.rollback()
-		pass;
 
 	@commands.command(name='create', rest_is_raw=True)
 	async def command_create_group(self, context, group_title=''):
