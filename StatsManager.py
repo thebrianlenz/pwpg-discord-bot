@@ -25,7 +25,7 @@ class StatsManager(commands.Cog):
 		self.bot = bot
 		self.command_batch = []
 		self.reaction_batch = []
-		self.stats_db = sqlite3.connect('stats.db')
+		self.stats_db = sqlite3.connect('data/stats.db')
 		self.bulk_insert_loop.start()
 
 	def cog_unload(self):

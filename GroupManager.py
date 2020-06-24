@@ -1172,7 +1172,7 @@ class GroupDatabaseManager(commands.Cog):
 
 	def __init__(self, bot: Bot):
 		self.bot = bot
-		self.groups_db = sqlite3.connect('groups.db')
+		self.groups_db = sqlite3.connect('data/groups.db')
 
 	async def cog_command_error(self, context, error):
 		# Flags the context that the cog is handling the error
