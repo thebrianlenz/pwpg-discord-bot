@@ -1,19 +1,18 @@
-import discord
 import asyncio
-from discord.ext import commands
-from discord.ext.commands import Bot
-import praw
-import youtube_dl
-import boto3
-import botocore
-from botocore.exceptions import ClientError
-import requests
-
 from configparser import ConfigParser
 from functools import partial
 
-class VideoReuploader(commands.Cog):
+import boto3
+import botocore
+import discord
+import praw
+import requests
+import youtube_dl
+from botocore.exceptions import ClientError
+from discord.ext import commands
+from discord.ext.commands import Bot
 
+class VideoReuploader(commands.Cog):
 	def __init__(self, bot: Bot):
 		self.bot = bot
 		config = ConfigParser()
@@ -31,9 +30,7 @@ class VideoReuploader(commands.Cog):
 					 client_secret = CLIENT_SECRET,
 					 user_agent = USER_AGENT)
 
-		#aws_config = botocore.config.Config(signature_version = botocore.UNSIGNED)
 		self.aws_client = boto3.client('s3',
-							#config = aws_config,
 							aws_access_key_id = AWS_ACCESS_KEY_ID,
 							aws_secret_access_key = AWS_SECRET_ACCESS_KEY)
 
@@ -41,19 +38,33 @@ class VideoReuploader(commands.Cog):
 						description = 'Check aws for object name',
 						pass_context = True)
 	async def check_aws(self, context, target_url):
+		"""Takes a target URL of a v.reddit video, rehosts it, and returns a public URL.
+
+		Args:
+			context (context): Context of the invoking command
+			target_url (str): URL of a v.reddit video
+		"""
 		try:
-			print('waiting for grab_vreddit')
+			msg = await context.send("... rehosting v.reddit ...")
 			to_run = partial(self.grab_vreddit, target_url)
 			result = await self.bot.loop.run_in_executor(None, to_run)
-			print(result)
-		#url = self.grab_vreddit(self.get_submission_object(target_url))
+			await context.send(result)
+			await msg.delete()
 		except Exception as e:
 			print(e)
-		#context.send(url)
 
 	def grab_vreddit(self, target_url):
-		# Grabs the title from the reddit submission
-		# Determines extension when downloaded with ydl
+		"""Takes a target URL of a v.reddit video and reuploads it to an S3 Bucket for rehosting.
+
+		Using the title of the submission, the file is named and saved to the local disk, then uploaded 
+		to S3. When the video exists on the Bucket, the public URL is returned.
+
+		Args:
+			target_url (str): A v.reddit URL
+
+		Returns:
+			str: The URL of the rehosted video
+		"""
 		submission = self.get_submission_object(target_url)
 		title_pattern = f'{submission.title} - {submission.name}'
 		heirarchy = f'videos/'
@@ -62,7 +73,6 @@ class VideoReuploader(commands.Cog):
 
 		ydl = youtube_dl.YoutubeDL(ydl_opts)
 
-		print('Finding filename')
 		info_dict = ydl.extract_info(submission.url, False)
 		filename = f'{ydl.prepare_filename(info_dict)}'
 		aws_file_path = f'{heirarchy}{title_pattern}.{info_dict["ext"]}'
@@ -82,6 +92,14 @@ class VideoReuploader(commands.Cog):
 			return url
 
 	def aws_upload(self, local_file_path, aws_target_path):
+		"""Uploads a file to S3 using the Bucket defined in config.ini
+		
+		The file uploaded is given the ContentType of video/mp4, and is made publicly readable.
+
+		Args:
+			local_file_path (str): The path of the local file
+			aws_target_path (str): The location to upload within the S3 Bucket
+		"""
 		try:
 			self.aws_client.upload_file(local_file_path, self.AWS_BUCKET, aws_target_path,
 										ExtraArgs={'ContentType' : 'video/mp4',
@@ -89,10 +107,16 @@ class VideoReuploader(commands.Cog):
 		except Exception as e:
 			print('Upload failed')
 			print(e)
-			pass
-		pass
 
 	def aws_locate(self, file_path):
+		"""Takes an AWS file path and creates a public URL.
+
+		Args:
+			file_path (str): The file path for an object on AWS S3
+
+		Returns:
+			str: A public URL for an AWS S3 object or None if the object is not found
+		"""
 		try:
 			url = self.aws_client.generate_presigned_url('get_object',
 												Params = {'Bucket' : self.AWS_BUCKET,
@@ -103,9 +127,16 @@ class VideoReuploader(commands.Cog):
 		except ClientError as e:
 			print(e)
 			return None
-		pass
 
 	def get_submission_object(self, target_url):
+		"""Takes a target_url and passes it through requests to make sure that we aren't being redirected.
+
+		Args:
+			target_url (str): A URL
+
+		Returns:
+			str: A redirected URL for a valid submission
+		"""
 		# todo change to aiohttp instead of requests
 		full_url = requests.head(target_url, allow_redirects = True)
 		submission = self.reddit.submission(url = full_url.url)
@@ -113,9 +144,16 @@ class VideoReuploader(commands.Cog):
 		return submission
 
 	def clean_aws_url(self, aws_file_path):
-		result = aws_file_path.partition("?AWSAccessKeyId=")
-		return result[0]
+		"""Cleans out the presigned signature for AWS.
 
+		Args:
+			aws_file_path (str): A full file path that has been generated for an AWS S3 object
+
+		Returns:
+			str: A "cleaned" version of a public AWS S3 object
+		"""
+		result = aws_file_path.partition("?AWSAccessKeyId=") # Removes the signature component of the URL
+		return result[0]
 
 def setup(bot):
 	bot.add_cog(VideoReuploader(bot))
