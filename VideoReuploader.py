@@ -38,6 +38,7 @@ class VideoReuploader(commands.Cog):
 						description = 'Check aws for object name',
 						pass_context = True)
 	async def check_aws(self, context, target_url):
+		# todo address the failed responses when it takes a while (duh) to upload a video
 		"""Takes a target URL of a v.reddit video, rehosts it, and returns a public URL.
 
 		Args:
@@ -46,14 +47,16 @@ class VideoReuploader(commands.Cog):
 		"""
 		try:
 			msg = await context.send("... rehosting v.reddit ...")
-			to_run = partial(self.grab_vreddit, target_url)
-			result = await self.bot.loop.run_in_executor(None, to_run)
-			await context.send(result)
+			#to_run = partial(self.grab_vreddit, target_url)
+			#result = await self.bot.loop.run_in_executor(None, to_run)
+			result = await self.grab_vreddit(target_url)
+			print(result)
+			await context.send(f'Rehosted: {result}')
 			await msg.delete()
 		except Exception as e:
 			print(e)
 
-	def grab_vreddit(self, target_url):
+	async def grab_vreddit(self, target_url):
 		"""Takes a target URL of a v.reddit video and reuploads it to an S3 Bucket for rehosting.
 
 		Using the title of the submission, the file is named and saved to the local disk, then uploaded 
@@ -76,20 +79,27 @@ class VideoReuploader(commands.Cog):
 		info_dict = ydl.extract_info(submission.url, False)
 		filename = f'{ydl.prepare_filename(info_dict)}'
 		aws_file_path = f'{heirarchy}{title_pattern}.{info_dict["ext"]}'
-		print(f'Filename - {filename}')
-		print(aws_file_path)
 
-		url = self.aws_locate(aws_file_path)
+		url = self.aws_locate_url(aws_file_path)
 
 		if url is None:
 			# needs to be uploaded
 			print('No file found on AWS, downloading now')
-			ydl.download([submission.url])
+			
+			#ydl.download([submission.url]) ran in executor to prevent blocking
+			to_run = partial(ydl.download, [submission.url])
+			await self.bot.loop.run_in_executor(None, to_run)
+
 			print('Uploading to AWS')
-			self.aws_upload(filename, aws_file_path)
-		else:
-			# package and return the url
-			return url
+			
+			#self.aws_upload(filename, aws_file_path) ran in executor to prevent blocking
+			to_run = partial(self.aws_upload, filename, aws_file_path)
+			await self.bot.loop.run_in_executor(None, to_run)
+
+			url = self.aws_locate_url(aws_file_path)
+
+		return url
+		
 
 	def aws_upload(self, local_file_path, aws_target_path):
 		"""Uploads a file to S3 using the Bucket defined in config.ini
@@ -108,7 +118,7 @@ class VideoReuploader(commands.Cog):
 			print('Upload failed')
 			print(e)
 
-	def aws_locate(self, file_path):
+	def aws_locate_url(self, file_path):
 		"""Takes an AWS file path and creates a public URL.
 
 		Args:
@@ -118,6 +128,7 @@ class VideoReuploader(commands.Cog):
 			str: A public URL for an AWS S3 object or None if the object is not found
 		"""
 		try:
+			self.aws_client.head_object(Bucket = self.AWS_BUCKET, Key = file_path)
 			url = self.aws_client.generate_presigned_url('get_object',
 												Params = {'Bucket' : self.AWS_BUCKET,
 															'Key' : file_path},
