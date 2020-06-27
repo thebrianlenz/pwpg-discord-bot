@@ -2,6 +2,7 @@ import asyncio
 from configparser import ConfigParser
 from functools import partial
 
+import aiohttp
 import boto3
 import botocore
 import discord
@@ -11,6 +12,7 @@ import youtube_dl
 from botocore.exceptions import ClientError
 from discord.ext import commands
 from discord.ext.commands import Bot
+
 
 class VideoReuploader(commands.Cog):
 	def __init__(self, bot: Bot):
@@ -38,7 +40,6 @@ class VideoReuploader(commands.Cog):
 						description = 'Check aws for object name',
 						pass_context = True)
 	async def check_aws(self, context, target_url):
-		# todo address the failed responses when it takes a while (duh) to upload a video
 		"""Takes a target URL of a v.reddit video, rehosts it, and returns a public URL.
 
 		Args:
@@ -47,8 +48,6 @@ class VideoReuploader(commands.Cog):
 		"""
 		try:
 			msg = await context.send("... rehosting v.reddit ...")
-			#to_run = partial(self.grab_vreddit, target_url)
-			#result = await self.bot.loop.run_in_executor(None, to_run)
 			result = await self.grab_vreddit(target_url)
 			print(result)
 			await context.send(f'Rehosted: {result}')
@@ -68,8 +67,8 @@ class VideoReuploader(commands.Cog):
 		Returns:
 			str: The URL of the rehosted video
 		"""
-		submission = self.get_submission_object(target_url)
-		title_pattern = f'{submission.title} - {submission.name}'
+		submission = await self.get_submission_object(target_url)
+		title_pattern = f'{submission.name}' # Removed {submission.title} to reduce name length
 		heirarchy = f'videos/'
 		ydl_opts = {'prefer_ffmpeg' : True,
 			'outtmpl' : f'{heirarchy}{title_pattern}.%(ext)s'}
@@ -86,7 +85,7 @@ class VideoReuploader(commands.Cog):
 			# needs to be uploaded
 			print('No file found on AWS, downloading now')
 			
-			#ydl.download([submission.url]) ran in executor to prevent blocking
+			# ydl.download([submission.url]) ran in executor to prevent blocking
 			to_run = partial(ydl.download, [submission.url])
 			await self.bot.loop.run_in_executor(None, to_run)
 
@@ -139,20 +138,17 @@ class VideoReuploader(commands.Cog):
 			print(e)
 			return None
 
-	def get_submission_object(self, target_url):
+	async def get_submission_object(self, target_url):
 		"""Takes a target_url and passes it through requests to make sure that we aren't being redirected.
 
 		Args:
 			target_url (str): A URL
 
 		Returns:
-			str: A redirected URL for a valid submission
+			Reddit.submission: A Reddit submission object
 		"""
-		# todo change to aiohttp instead of requests
-		full_url = requests.head(target_url, allow_redirects = True)
-		submission = self.reddit.submission(url = full_url.url)
-
-		return submission
+		async with aiohttp.request(method = 'HEAD', url = target_url, allow_redirects = True) as response:
+			return self.reddit.submission(url = str(response.url))
 
 	def clean_aws_url(self, aws_file_path):
 		"""Cleans out the presigned signature for AWS.
