@@ -46,6 +46,23 @@ async def on_command_error(context, error):
     # Some other error, let the cooldown reset
     context.command.reset_cooldown(context)
 
+@client.command(name='about',
+                brief='A quick summary about the bot',
+                description='Lists some of the core features about the bot')
+async def _about(context):
+    embed=discord.Embed(title="PWPG Bot", url = "https://github.com/thebrianlenz/pwpg-discord-bot", color = 0x000000)
+    embed.set_thumbnail(url="https://cdn.discordapp.com/icons/315995274575085570/49318765d092b19f713ad97f26a5ae12")
+    embed.add_field(name="Here are some of the features available:", value = '---------', inline=False)
+    embed.add_field(name="Groups", value="Join different groups for easy pings and text chats", inline=True)
+    embed.add_field(name="Stats", value="Keeps track of the most popular posts and emojis", inline=True)
+    embed.add_field(name="Video Mirroring", value="Rehost v.reddit videos so the embed actually works!", inline=True)
+    embed.add_field(name="Some upcoming features include:", value="---------", inline=False)
+    embed.add_field(name="Games", value="Secret Hitler, Trivia?, more?", inline=True)
+    embed.add_field(name="Polls", value="Create and vote on various things", inline=True)
+    embed.set_footer(text="Neat")
+
+    await context.send(embed=embed)
+
 @client.command(name='load', 
                 hidden=True,
                 brief='Load a new module',
