@@ -147,11 +147,35 @@ class GroupDatabaseManager(commands.Cog):
 		# retrieve the associated groups
 		# create embed?
 		# post
-		print(self._get_all_groups(context))
+		results = self._get_user_memberships(context, context.author.id)
+
+		embed = discord.Embed(title = results[0][0], description = 'descr')
+		await context.send('Testing', embed = embed)
 
 	@commands.command(name='init')
 	async def command_init_tables(self, context):
 		self._database_creation()
+
+	def _get_user_memberships(self, context, user_id):
+		"""Retrieves all memberships of a specific user_id.
+
+		Args:
+			context (context): The context of the invoking command
+			user_id (int): The id of a specific user to search
+
+		Returns:
+			list of (group_id: int): A list of a user's memberships by group_id as a tuple.
+		"""
+
+		data = { 'user_id': user_id }
+
+		try:
+			groups_list = self.groups_db.execute("""SELECT group_id FROM group_user_registry WHERE user_id=(:user_id)""", data).fetchall()
+		except Exception as error:
+			self._database_error_handler(context, error, data)
+
+		print(groups_list)
+		return groups_list
 
 	def _get_all_groups(self, context):
 		"""Fetches a list of tuples for all groups in the current guild.
@@ -160,7 +184,7 @@ class GroupDatabaseManager(commands.Cog):
 			context (context): The context of the invoking command
 
 		Returns:
-			list of (group_id, group_title, group_description): The results of the database query for all groups in the current guild. 
+			list of (group_id: int, group_title: str, group_description: str): The results of the database query for all groups in the current guild. 
 				Returned as a list of tuples.
 		"""
 		data = { 'guild_id': context.guild.id }
