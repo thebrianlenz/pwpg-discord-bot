@@ -36,7 +36,7 @@ class VideoReuploader(commands.Cog):
 							aws_access_key_id = AWS_ACCESS_KEY_ID,
 							aws_secret_access_key = AWS_SECRET_ACCESS_KEY)
 
-	@commands.command(name='check',
+	@commands.command(name='mirror',
 						description = 'Check aws for object name',
 						pass_context = True)
 	async def check_aws(self, context, target_url):
@@ -99,7 +99,6 @@ class VideoReuploader(commands.Cog):
 
 		return url
 		
-
 	def aws_upload(self, local_file_path, aws_target_path):
 		"""Uploads a file to S3 using the Bucket defined in config.ini
 		
