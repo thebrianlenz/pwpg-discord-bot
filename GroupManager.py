@@ -139,26 +139,49 @@ class GroupDatabaseManager(commands.Cog):
 		for mem in temp:
 			print("{} joined at {}".format(mem.name, mem.joined_at))
 
-	# list all available groups
-	# list specified group
-	# list a user's groups
 	@commands.command(name='list')
 	async def command_list_group(self, context):
-		# retrieve the associated groups
-		# create embed?
-		# post
-		results = self._get_user_memberships(context, context.author.id)
+		"""Lists the memberships of the invoking user.
 
-		embed = discord.Embed(title = 'Group Memberships', description = f'Groups that `{context.author.display_name}` belongs to on `{context.guild.name}`')
+		Args:
+			context (context): The context of the invoking command
+		"""
+		results = self._get_user_memberships(context, context.author.id)
+		member_count = self._get_group_member_counts(context)
+
+		embed = discord.Embed(title = 'Group Memberships', description = f'`{context.author.display_name}` belongs to these groups on `{context.guild.name}`:')
+		embed.set_thumbnail(url=context.guild.icon_url_as(size = 32))
 		
 		for group in results:
-			if group[1] == context.guild.id: embed.add_field(name = group[0], value = group[2])
+			if group[1] == context.guild.id:
+				embed.add_field(name = group[0], value = f'{member_count[group[3]]} members')
+				# TODO: deal with the plural thingy somehow
 
 		await context.send(embed = embed)
 
 	@commands.command(name='init')
 	async def command_init_tables(self, context):
 		self._database_creation()
+
+	def _get_group_member_counts(self, context):
+		"""Count the total users of each group_id and return as a dictionary
+
+		Args:
+			context (context): The context of the invoking command
+
+		Returns:
+			dictionary of (group_id:member_count): Member counts of each group_id
+		"""		
+		data = { }
+		query = """SELECT group_id, COUNT(*) FROM group_user_registry GROUP BY group_id"""
+
+		try:
+			member_counts = self.groups_db.execute(query).fetchall()
+		except Exception as error:
+			self._database_error_handler(context, error, data)
+			return None
+
+		return dict(member_counts)
 
 	def _get_user_memberships(self, context, user_id):
 		"""Retrieves all memberships of a specific user_id.
@@ -190,7 +213,6 @@ class GroupDatabaseManager(commands.Cog):
 			self._database_error_handler(context, error, data)
 			return None
 
-		#return [item for t in groups_list for item in t]
 		return groups_list
 
 	def _get_all_groups(self, context):
