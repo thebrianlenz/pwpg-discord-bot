@@ -149,8 +149,12 @@ class GroupDatabaseManager(commands.Cog):
 		# post
 		results = self._get_user_memberships(context, context.author.id)
 
-		embed = discord.Embed(title = results[0][0], description = 'descr')
-		await context.send('Testing', embed = embed)
+		embed = discord.Embed(title = 'Group Memberships', description = f'Groups that `{context.author.display_name}` belongs to on `{context.guild.name}`')
+		
+		for group in results:
+			if group[1] == context.guild.id: embed.add_field(name = group[0], value = group[2])
+
+		await context.send(embed = embed)
 
 	@commands.command(name='init')
 	async def command_init_tables(self, context):
@@ -164,17 +168,29 @@ class GroupDatabaseManager(commands.Cog):
 			user_id (int): The id of a specific user to search
 
 		Returns:
-			list of (group_id: int): A list of a user's memberships by group_id as a tuple.
+			list of (group_title, guild_id, description, group_id, options_key): A list of a user's memberships by group_id as a tuple.
 		"""
 
 		data = { 'user_id': user_id }
 
+		query = """SELECT 
+						group_registry.group_title,
+						group_registry.guild_id,
+						group_registry.description,
+						group_user_registry.group_id,
+						group_user_registry.options_key
+					FROM group_registry
+					INNER JOIN group_user_registry ON
+						group_registry.uid = group_user_registry.group_id
+					WHERE group_user_registry.user_id=(:user_id)"""
+
 		try:
-			groups_list = self.groups_db.execute("""SELECT group_id FROM group_user_registry WHERE user_id=(:user_id)""", data).fetchall()
+			groups_list = self.groups_db.execute(query, data).fetchall()
 		except Exception as error:
 			self._database_error_handler(context, error, data)
+			return None
 
-		print(groups_list)
+		#return [item for t in groups_list for item in t]
 		return groups_list
 
 	def _get_all_groups(self, context):
@@ -194,7 +210,6 @@ class GroupDatabaseManager(commands.Cog):
 		except Exception as error:
 			self._database_error_handler(context, error, data)
 
-		print(groups_list)
 		return groups_list
 
 	def _get_group_id(self, context, alias_to_search: str):
