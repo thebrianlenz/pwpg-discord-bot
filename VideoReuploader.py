@@ -14,7 +14,7 @@ from discord.ext import commands
 from discord.ext.commands import Bot
 
 
-class VideoReuploader(commands.Cog):
+class Reflector(commands.Cog):
 	def __init__(self, bot: Bot):
 		self.bot = bot
 		config = ConfigParser()
@@ -49,7 +49,6 @@ class VideoReuploader(commands.Cog):
 		try:
 			msg = await context.send("... rehosting v.reddit ...")
 			result = await self.grab_vreddit(target_url)
-			print(result)
 			await context.send(f'Rehosted: {result}')
 			await msg.delete()
 		except Exception as e:
@@ -162,7 +161,7 @@ class VideoReuploader(commands.Cog):
 		return result[0]
 
 def setup(bot):
-	bot.add_cog(VideoReuploader(bot))
+	bot.add_cog(Reflector(bot))
 
 def teardown(bot):
-	bot.remove_cog('VideoReuploader')
+	bot.remove_cog('Reflector')
