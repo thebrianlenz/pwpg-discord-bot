@@ -122,7 +122,7 @@ class GroupDatabaseManager(commands.Cog):
 
 	@commands.command(name='join', rest_is_raw=True)
 	async def command_join_group(self, context, name=''):
-		options = -1
+		options = 0
 		self._add_group_user_entry(context, name, options)
 
 	@commands.command(name='lookup', rest_is_raw=True, hidden=True)
@@ -168,16 +168,16 @@ class GroupDatabaseManager(commands.Cog):
 
 		embed = discord.Embed(title = 'Embed')
 
-		for member in member_list:
-			if member[3] == 1:
-				# send message
-				break
-			elif member[3] == 0:
-				# check for status
-				break
-			elif member[3] == -1:
-				# ignore member
-				break
+		for member_data in member_list:
+			member = await commands.MemberConverter().convert(context, str(member_data[2]))
+			if member_data[3] == 1:
+				await member.send(message_to_send)
+			elif member_data[3] == 0:
+				if member.status is Status.online or member.status is Status.idle:
+					await member.send(message_to_send)
+				else: print(f'Ignoring member {member.mention}, not online or idle')
+			elif member_data[3] == -1:
+				print(f'Ignoring member {member.mention}')
 			else:
 				# invalid options_key
 				print('Invalid options_key')
@@ -219,10 +219,21 @@ class GroupDatabaseManager(commands.Cog):
 			return True
 
 	def _get_group_member_list(self, context, group_name: str):
+		"""Retrieves all members of a group
+
+		Args:
+			context (context): The context of the invoking command
+			group_name (str): The name of the group to fetch members
+
+		Raises:
+			non: TODO: Raise a non-existing group error
+
+		Returns:
+			list of (group_title, group_id, user_id, options_key): List of tuples containing member information
+		"""		
 		# takes in an alias, and returns the member list including option key
 		group_id = self._get_group_id(context, group_name)
 		if group_id == -1:
-			# TODO raise non-existant group
 			return False
 
 		data = { 'group_id': group_id }
