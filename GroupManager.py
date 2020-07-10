@@ -52,12 +52,11 @@ class UserNotFound(commands.BadArgument): pass
 # TODO: Overall Refactor
 """
 Major:
-	List all groups
-	List members in a group
 	Ping a group
 	Descriptions
 	Better documentation
 	Confirmations (probably the reaction method again)
+	Temp channels? Probably should be its own module, but it should definitely be hooked somehow
 Minor:
 	Check a user's group memberships
 	User preferences? (offline ping mainly)
@@ -124,10 +123,9 @@ class GroupDatabaseManager(commands.Cog):
 	@commands.command(name='join', rest_is_raw=True)
 	async def command_join_group(self, context, name=''):
 		options = -1
-		group_id = self._get_group_id(context, name)
-		self._add_group_user_entry(context, group_id, options)
+		self._add_group_user_entry(context, name, options)
 
-	@commands.command(name='lookup', rest_is_raw=True)
+	@commands.command(name='lookup', rest_is_raw=True, hidden=True)
 	async def command_group_lookup(self, context, name=''):
 		print(f'Lookup command found {self._get_group_id(context, name)}')
 	
@@ -140,7 +138,7 @@ class GroupDatabaseManager(commands.Cog):
 			print("{} joined at {}".format(mem.name, mem.joined_at))
 
 	@commands.command(name='list')
-	async def command_list_group(self, context):
+	async def command_list_user_memberships(self, context):
 		"""Lists the memberships of the invoking user.
 
 		Args:
@@ -159,9 +157,93 @@ class GroupDatabaseManager(commands.Cog):
 
 		await context.send(embed = embed)
 
-	@commands.command(name='init')
+	@commands.command(name="ping")
+	async def command_ping_group(self, context, group_name=''):
+		# build embed, maybe include referral back to pinged message?
+		# direct message each member, unless options say otherwise
+		# options key could be -1 for no pings, 0 for active, 1 for anytime
+		member_list = self._get_group_member_list(context, group_name)
+		message_to_send = 'something goes here, probably from command'
+		linking_message = 'likely a context reference to the invoking message?'
+
+		embed = discord.Embed(title = 'Embed')
+
+		for member in member_list:
+			if member[3] == 1:
+				# send message
+				break
+			elif member[3] == 0:
+				# check for status
+				break
+			elif member[3] == -1:
+				# ignore member
+				break
+			else:
+				# invalid options_key
+				print('Invalid options_key')
+
+	@commands.command(name='update')
+	async def command_update_group_user_options_key(self, context, group_name, new_key):
+		self._set_group_user_options_key(context, group_name, new_key)
+
+	@commands.command(name='init', hidden=True)
 	async def command_init_tables(self, context):
 		self._database_creation()
+
+	def _set_group_user_options_key(self, context, group_name, new_option_key):
+		group_id = self._get_group_id(context, group_name)
+
+		if group_id == -1:
+			print(f'The group {group_name} was not found.')
+			# TODO raise non-existant group
+			return False
+
+		data = {
+			'group_id': group_id,
+			'options_key': new_option_key,
+			'user_id': context.author.id
+			}
+
+		query = """UPDATE group_user_registry
+				SET options_key = :options_key
+				WHERE user_id = :user_id AND group_id = :group_id"""
+
+		try:
+			self.groups_db.execute(query, data)
+		except Exception as error:
+			self._database_error_handler(context, error, data)
+			return False
+		else:
+			self.groups_db.commit()
+			print(f'Updated {data["user_id"]} options key to {data["options_key"]} for the group id {data["group_id"]}')
+			return True
+
+	def _get_group_member_list(self, context, group_name: str):
+		# takes in an alias, and returns the member list including option key
+		group_id = self._get_group_id(context, group_name)
+		if group_id == -1:
+			# TODO raise non-existant group
+			return False
+
+		data = { 'group_id': group_id }
+
+		query = """SELECT
+					group_registry.group_title,
+					group_user_registry.group_id,
+					group_user_registry.user_id,
+					group_user_registry.options_key
+				FROM group_user_registry
+				INNER JOIN group_registry ON
+					group_user_registry.group_id = group_registry.group_id
+				WHERE group_user_registry.group_id=(:group_id)"""
+
+		try:
+			member_list = self.groups_db.execute(query, data).fetchall()
+		except Exception as error:
+			self._database_error_handler(context, error, data)
+			return None
+		
+		return member_list
 
 	def _get_group_member_counts(self, context):
 		"""Count the total users of each group_id and return as a dictionary
@@ -204,7 +286,7 @@ class GroupDatabaseManager(commands.Cog):
 						group_user_registry.options_key
 					FROM group_registry
 					INNER JOIN group_user_registry ON
-						group_registry.uid = group_user_registry.group_id
+						group_registry.group_id = group_user_registry.group_id
 					WHERE group_user_registry.user_id=(:user_id)"""
 
 		try:
@@ -228,14 +310,14 @@ class GroupDatabaseManager(commands.Cog):
 		data = { 'guild_id': context.guild.id }
 
 		try:
-			groups_list = self.groups_db.execute("""SELECT uid, group_title, description FROM group_registry WHERE guild_id=(:guild_id)""", data).fetchall()
+			groups_list = self.groups_db.execute("""SELECT group_id, group_title, description FROM group_registry WHERE guild_id=(:guild_id)""", data).fetchall()
 		except Exception as error:
 			self._database_error_handler(context, error, data)
 
 		return groups_list
 
 	def _get_group_id(self, context, alias_to_search: str):
-		"""Fetches a group_id using a title or alias.
+		"""Fetches the group_id using a title or alias in the context's guild.
 
 		Args:
 			context (context): The context of the invoking command
@@ -290,9 +372,10 @@ class GroupDatabaseManager(commands.Cog):
 
 		Args:
 			context (context): Context of the invoking command
-			group_id (int): The group_id to be aliased
+			group_id (int): The group to be aliased
 			alias (str): The name to be added as an alias
-		"""		
+		"""
+
 		data = { 'group_id': group_id, 'guild_id': context.guild.id, 'alias': alias }
 		try:
 			self.groups_db.execute("""INSERT INTO group_alias_registry VALUES
@@ -303,19 +386,19 @@ class GroupDatabaseManager(commands.Cog):
 		else:
 			self.groups_db.commit()
 			print(f'An alias of {alias} seems to have been added to group id {group_id}.')
-		pass
 
-	def _add_group_user_entry(self, context, group_id: int, options_key: int):
+	def _add_group_user_entry(self, context, group_name: str, options_key: int):
 		"""Adds the invoking user to a group_id.
 
 		Args:
 			context (context): The context of the invoking command
-			group_id (int): The group_id for the user entry to be associated with
+			group_name (str): The group for the user entry to be associated with
 			options_key (int): An options key to be associated with the user (not implemented yet)
 
 		Returns:
 			bool: Whether the user addition was successful
-		"""		
+		"""
+		group_id = self._get_group_id(context, group_name)
 		if group_id == -1:
 			# todo - Raise exception here for group not existing?
 			return False
@@ -334,11 +417,14 @@ class GroupDatabaseManager(commands.Cog):
 			print(f'Added user id {data["user_id"]} to group id {group_id}')
 			return True
 
+	def _delete_group_user_entry(self, context, group_name: str):
+		group_id = self._get_group_id(context, group_name)
+
 	def _database_creation(self):
 		"""Initializes the group database tables.
 		"""		
 		sql_group_registry = """CREATE TABLE IF NOT EXISTS group_registry (
-								uid INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,
+								group_id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,
 								group_title TEXT COLLATE NOCASE,
 								guild_id INTEGER,
 								datetime_created TEXT,
@@ -350,7 +436,7 @@ class GroupDatabaseManager(commands.Cog):
 									group_id INTEGER NOT NULL,
 									user_id INTEGER NOT NULL,
 									options_key INTEGER,
-									FOREIGN KEY(group_id) REFERENCES group_registry(uid) ON DELETE CASCADE,
+									FOREIGN KEY(group_id) REFERENCES group_registry(group_id) ON DELETE CASCADE,
 									UNIQUE(group_id, user_id)
 								);"""
 
@@ -358,7 +444,7 @@ class GroupDatabaseManager(commands.Cog):
 									group_id INTEGER NOT NULL,
 									guild_id INTEGER NOT NULL,
 									alias TEXT COLLATE NOCASE,
-									FOREIGN KEY(group_id) REFERENCES group_registry(uid) ON DELETE CASCADE,
+									FOREIGN KEY(group_id) REFERENCES group_registry(group_id) ON DELETE CASCADE,
 									UNIQUE(guild_id, alias)
 								);"""
 
