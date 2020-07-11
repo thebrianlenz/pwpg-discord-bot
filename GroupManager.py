@@ -13,7 +13,6 @@
 	as a cog to an existing Discord.py Bot.
 	This extension should likely not be loaded as a Python module.
 """
-
 from discord.ext import commands
 import sys
 import argparse
@@ -25,7 +24,7 @@ import discord
 import asyncio
 import json
 import re
-from MessageIO import *
+import MessageIO
 
 import sqlite3
 from datetime import datetime
@@ -121,9 +120,18 @@ class GroupDatabaseManager(commands.Cog):
 		self._create_group_entry(context, group_title, description)
 
 	@commands.command(name='join', rest_is_raw=True)
-	async def command_join_group(self, context, name=''):
+	async def command_join_group(self, context, group_name=''):
 		options = 0
-		self._add_group_user_entry(context, name, options)
+		if self._add_group_user_entry(context, group_name, options):
+			await context.message.add_reaction('👍')
+		else: await context.message.add_reaction('👎')
+
+	@commands.command(name='leave')
+	async def command_leave_group(self, context, group_name=''):
+		if await MessageIO.prompt_with_thumbs(context, f'Confirm attempt to leave {group_name}?', True):
+			if self._delete_group_user_entry(context, group_name): await context.message.add_reaction('👍')
+			else: await context.message.add_reaction('👎')
+		else: await context.message.add_reaction('👎')
 
 	@commands.command(name='lookup', rest_is_raw=True, hidden=True)
 	async def command_group_lookup(self, context, name=''):
@@ -430,6 +438,24 @@ class GroupDatabaseManager(commands.Cog):
 
 	def _delete_group_user_entry(self, context, group_name: str):
 		group_id = self._get_group_id(context, group_name)
+		if group_id == -1:
+			#TODO raise exception
+			return False
+
+		data = { 'group_id': group_id, 'user_id': context.author.id }
+		query = """DELETE FROM group_user_registry
+				WHERE group_id = :group_id AND user_id = :user_id"""
+
+		try:
+			self.groups_db.execute(query, data)
+		except Exception as error:
+			self._database_error_handler(context, error, data)
+			print(f'There was an issue removing {data["user_id"]} from group {data["group_id"]}')
+			return False
+		else:
+			self.groups_db.commit()
+			print(f'The user id {data["user_id"]} was removed from group {data["group_id"]}')
+			return True
 
 	def _database_creation(self):
 		"""Initializes the group database tables.

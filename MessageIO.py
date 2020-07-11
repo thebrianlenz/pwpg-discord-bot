@@ -1,9 +1,9 @@
 import discord
 import asyncio
 
-async def promptForInput(context, prompt: str):
+async def prompt_for_input(context, prompt: str):
     def check(inputMessage):
-        return inputMessage.author is context.author
+        return inputMessage.author.id is context.author.id
 
     promptedMessage = await context.send(f'{prompt}')
     try:
@@ -18,9 +18,9 @@ async def promptForInput(context, prompt: str):
 # Waits for a up or down from the user that prompted the message
 # Returns True for Up, False for Down
 # Also returns false if timed-out
-async def promptForThumbs(context, message: str):
+async def prompt_with_thumbs(context, message: str, delete_after_repsonse=False):
     def check(reaction, user):
-        return user is context.author and reaction.emoji in ['👍', '👎'] and reaction.message.id == promptedText.id
+        return user.id is context.author.id and str(reaction.emoji) in ['👍', '👎'] and reaction.message.id == promptedText.id
 
     promptedText = await context.send(f'{message}')
     await promptedText.add_reaction('👍')
@@ -30,12 +30,12 @@ async def promptForThumbs(context, message: str):
         reaction, _user = await context.bot.wait_for("reaction_add", timeout = 10.0, check = check)
     except asyncio.TimeoutError:
         await promptedText.delete()
-        await context.send(f'Please select a response quicker!')
+        await context.send(f'Please select a response quicker!', delete_after = 10.0)
         return False
 
+    if delete_after_repsonse: await promptedText.delete()
+
     if reaction.emoji == '👍':
-        await promptedText.clear_reactions()
         return True
     elif reaction.emoji == '👎':
-        await promptedText.clear_reactions()
         return False
