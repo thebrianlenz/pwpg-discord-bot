@@ -10,16 +10,12 @@ from discord.ext.commands import Bot
 
 from datetime import datetime
 
-"""		Things needed
-	Watch and record command executions
-	Record reactions
-	Dump results
-"""
-
 class StatsManager(commands.Cog):
-	# TODO: finish docstrings
+	# todo: finish docstrings
 
-	# TODO: data retrieval for stats
+	# todo: data retrieval for stats
+	# todo - add db initialization for new file
+
 
 	def __init__(self, bot: Bot):
 		self.bot = bot
