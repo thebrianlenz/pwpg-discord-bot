@@ -51,6 +51,7 @@ async def on_command_error(context, error):
                 brief='A quick summary about the bot',
                 description='Lists some of the core features about the bot')
 async def _about(context):
+    # todo - populate embed dynamically
     embed=discord.Embed(title="PWPG Bot", url = "https://github.com/thebrianlenz/pwpg-discord-bot", color = 0x000000)
     embed.set_thumbnail(url="https://cdn.discordapp.com/icons/315995274575085570/49318765d092b19f713ad97f26a5ae12")
     embed.add_field(name="Here are some of the features available:", value = '---------', inline=False)

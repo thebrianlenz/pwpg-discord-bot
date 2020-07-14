@@ -42,12 +42,6 @@ class GroupUserNotInGroupError(commands.BadArgument): pass
 class GroupEditingOtherThanSelfError(commands.BadArgument): pass
 class UserNotFound(commands.BadArgument): pass
 
-#       Delete group confirmation
-#       Temporary group mute for a user
-#       √ Offline ping preference setting
-#           Needs a refactor for more/smarter preferences
-#       Expand on error handling to inclue more information (command causing the error, etc)
-
 # TODO: Overall Refactor
 """
 Major:
@@ -60,6 +54,7 @@ Minor:
 	Check a user's group memberships
 	User preferences? (offline ping mainly)
 	Shortcodes? simple symbols for ping, e.g. - ..<group> <message>
+	Temporary group mute for a user
 
 Should exceptions be raised for common errors? (group not existing, duplicate entries, etc)
 If exceptions are raised, all calls should likely be wrapped in try blocks to do local handling
@@ -108,34 +103,37 @@ class GroupDatabaseManager(commands.Cog):
 			self.groups_db.rollback()
 
 	@commands.command(name='create', rest_is_raw=True)
-	async def command_create_group(self, context, group_title=''):
+	async def command_create_group(self, context, group_title: str):
 		"""Creates a group entry with the title given. TODO: allow a description
 		to be given to be associated with the group.
 
 		Args:
 			context (context): The context of the command being invoked
-			group_title (str, optional): A title for the group. Defaults to ''.
+			group_title (str): A title for the group
 		"""
+		# todo 
 		description = 'descr'
 		self._create_group_entry(context, group_title, description)
 
 	@commands.command(name='join', rest_is_raw=True)
-	async def command_join_group(self, context, group_name=''):
+	async def command_join_group(self, context, group_name: str):
+		# todo better response
 		options = 0
 		if self._add_group_user_entry(context, group_name, options):
 			await context.message.add_reaction('👍')
 		else: await context.message.add_reaction('👎')
 
 	@commands.command(name='leave')
-	async def command_leave_group(self, context, group_name=''):
+	async def command_leave_group(self, context, group_name: str):
+		# todo better response
 		if await MessageIO.prompt_with_thumbs(context, f'Confirm attempt to leave {group_name}?', True):
 			if self._delete_group_user_entry(context, group_name): await context.message.add_reaction('👍')
 			else: await context.message.add_reaction('👎')
 		else: await context.message.add_reaction('👎')
 
 	@commands.command(name='lookup', rest_is_raw=True, hidden=True)
-	async def command_group_lookup(self, context, name=''):
-		print(f'Lookup command found {self._get_group_id(context, name)}')
+	async def command_group_lookup(self, context, group_name: str):
+		print(f'Lookup command found {self._get_group_id(context, group_name)}')
 	
 	@commands.command(name='info', hidden=True)
 	async def command_info_server(self, context):
@@ -161,34 +159,57 @@ class GroupDatabaseManager(commands.Cog):
 		for group in results:
 			if group[1] == context.guild.id:
 				embed.add_field(name = group[0], value = f'{member_count[group[3]]} members')
-				# TODO: deal with the plural thingy somehow
+				# todo: deal with the plural thingy somehow
 
 		await context.send(embed = embed)
 
 	@commands.command(name="ping")
-	async def command_ping_group(self, context, group_name=''):
-		# build embed, maybe include referral back to pinged message?
-		# direct message each member, unless options say otherwise
-		# options key could be -1 for no pings, 0 for active, 1 for anytime
-		member_list = self._get_group_member_list(context, group_name)
-		message_to_send = 'something goes here, probably from command'
-		linking_message = 'likely a context reference to the invoking message?'
+	async def command_ping_group(self, context, group_name: str, *, message = ''):
+		"""Send a message to a group's members.
 
-		embed = discord.Embed(title = 'Embed')
+		Args:
+			context (context): The context of the invoking command
+			group_name (str, optional): The name of the group to ping
+		"""
+		# todo - embed for the message being sent
+
+		# todo - build an embed for the context
+		# todo - 	include number of members pinged
+		# todo - 	include the "message_to_send" provided by the command
+
+		member_list = self._get_group_member_list(context, group_name)
+
+		channel_embed = discord.Embed(title = f'Attempting to ping group `{member_list[0][0]}`!', description = "... waiting ...")
+		channel_message = await context.send(embed = channel_embed)
+
+		message_to_send = f"[Jump to the channel!]({channel_message.jump_url})\n{message}"
+
+		dm_embed = discord.Embed(title = f'`{context.author.name}` has pinged group `{member_list[0][0]}`!', description = message_to_send)
+		dm_embed.set_thumbnail(url = context.guild.icon_url_as(size = 32))
+		dm_embed.set_footer(text = 'Powered by PWPG', icon_url = context.bot.user.avatar_url_as(size = 32))
+
+		message_counter = 0
 
 		for member_data in member_list:
 			member = await commands.MemberConverter().convert(context, str(member_data[2]))
 			if member_data[3] == 1:
-				await member.send(message_to_send)
+				await member.send(embed = dm_embed)
+				message_counter += 1
 			elif member_data[3] == 0:
 				if member.status is Status.online or member.status is Status.idle:
-					await member.send(message_to_send)
+					await member.send(embed = dm_embed)
+					message_counter += 1
 				else: print(f'Ignoring member {member.mention}, not online or idle')
 			elif member_data[3] == -1:
 				print(f'Ignoring member {member.mention}')
 			else:
 				# invalid options_key
 				print('Invalid options_key')
+
+		channel_embed.title = f'Pings sent to `{member_list[0][0]}`!'
+		channel_embed.description = f'Total members: {len(member_list)}\nMembers pinged: {message_counter}'
+
+		await channel_message.edit(embed = channel_embed)
 
 	@commands.command(name='update')
 	async def command_update_group_user_options_key(self, context, group_name, new_key):
@@ -493,7 +514,7 @@ class GroupDatabaseManager(commands.Cog):
 	def cog_unload(self):
 		"""Called when the Cog is removed from the bot. Ensures that the database is closed properly.
 		"""
-		print('unloading cog')
+		print('unloading GroupManager cog')
 		self.groups_db.close()
 
 #=======================
