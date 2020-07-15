@@ -13,7 +13,7 @@ from discord.ext.commands import Bot
 BOT_PREFIX = ("!","$")
 
 config = ConfigParser()
-client = Bot(command_prefix=BOT_PREFIX, case_insensitive=True)
+bot = Bot(command_prefix=BOT_PREFIX, case_insensitive=True)
 
 config.read('config.ini')
 TOKEN = config.get('main', 'token')
@@ -24,7 +24,7 @@ initial_modules = [
         'Reflector'
         ]
 
-@client.event
+@bot.event
 async def on_command_error(context, error):
 
     if hasattr(context, 'error_being_handled') and context.error_being_handled: return
@@ -47,17 +47,17 @@ async def on_command_error(context, error):
     # Some other error, let the cooldown reset
     context.command.reset_cooldown(context)
 
-@client.command(name='about',
+@bot.command(name='about',
                 brief='A quick summary about the bot',
                 description='Lists some of the core features about the bot')
 async def _about(context):
-    # todo - populate embed dynamically
+    # docstring should include how the fields are populated (name in the cog definition and docstring for the cog)
+    # todo - make a cleaner way to include upcoming features
     embed=discord.Embed(title="PWPG Bot", url = "https://github.com/thebrianlenz/pwpg-discord-bot", color = 0x000000)
     embed.set_thumbnail(url="https://cdn.discordapp.com/icons/315995274575085570/49318765d092b19f713ad97f26a5ae12")
     embed.add_field(name="Here are some of the features available:", value = '---------', inline=False)
-    embed.add_field(name="Groups", value="Join different groups for easy pings and text chats", inline=True)
-    embed.add_field(name="Stats", value="Keeps track of the most popular posts and emojis", inline=True)
-    embed.add_field(name="Video Mirroring", value="Rehost v.reddit videos so the embed actually works!", inline=True)
+    for cog_name in bot.cogs:
+        embed.add_field(name = bot.cogs[cog_name].qualified_name, value = bot.cogs[cog_name].description, inline = True)
     embed.add_field(name="Some upcoming features include:", value="---------", inline=False)
     embed.add_field(name="Games", value="Secret Hitler, Trivia?, more?", inline=True)
     embed.add_field(name="Polls", value="Create and vote on various things", inline=True)
@@ -65,62 +65,62 @@ async def _about(context):
 
     await context.send(embed=embed)
 
-@client.command(name='load', 
+@bot.command(name='load', 
                 hidden=True,
                 brief='Load a new module',
                 description='Load a new module without stopping the bot')
 async def _load(context, module):
     try:
-        client.load_extension(module)
+        bot.load_extension(module)
         await context.message.add_reaction('👍')
     except Exception as e:
         print(f'Failed to load module {module}.', e)
         await context.message.add_reaction('👎')
 
-@client.command(name='unload', hidden=True)
+@bot.command(name='unload', hidden=True)
 async def _unload(context, module):
     try:
-        client.unload_extension(module)
+        bot.unload_extension(module)
         await context.message.add_reaction('👍')
     except Exception as e:
         print(f'Failed to load extension {module}.', e)
         await context.message.add_reaction('👎')
 
-@client.command(name='reload', aliases=['rl'], hidden=True)
+@bot.command(name='reload', aliases=['rl'], hidden=True)
 async def _reload(context, module):
     try:
-        client.reload_extension(module)
+        bot.reload_extension(module)
         await context.message.add_reaction('👍')
     except Exception as e:
         print(f'Failed to load module {module}.', e)
         await context.message.add_reaction('👎')
 
-@client.command(name='modules', hidden=True)
+@bot.command(name='modules', hidden=True)
 async def _listModules(context):
-    print (str(client.extensions.keys()))
+    print (str(bot.extensions.keys()))
 
-@client.command(name='rlsh', hidden=True)
+@bot.command(name='rlsh', hidden=True)
 async def _reloadSecretHitler(context):
     try:
-        client.reload_extension('SecretHitler')
+        bot.reload_extension('SecretHitler')
         await context.message.add_reaction('👍')
     except Exception as e:
         print(f'Failed to load module SH.', e)
         await context.message.add_reaction('👎')
 
-@client.event
+@bot.event
 async def on_ready():
     print('Logged in as')
-    print(client.user.name)
-    print(client.user.id)
+    print(bot.user.name)
+    print(bot.user.id)
     print('------')
     print(discord.__version__)
     for m in initial_modules:
             try:
-                client.load_extension(m)
+                bot.load_extension(m)
                 print(f'{m} loaded.')
             except Exception as e:
                 print(f'Failed to load extension {m}. {e}', file=sys.stderr)
                 traceback.print_exc()
 
-client.run(TOKEN)
+bot.run(TOKEN)

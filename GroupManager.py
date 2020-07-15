@@ -68,7 +68,8 @@ command level.
 
 
 """
-class GroupDatabaseManager(commands.Cog):
+class GroupManager(commands.Cog, name = 'Group Manager'):
+	"""Join different groups for easy pings and text chats."""
 
 	def __init__(self, bot: Bot):
 		self.bot = bot
@@ -169,13 +170,9 @@ class GroupDatabaseManager(commands.Cog):
 
 		Args:
 			context (context): The context of the invoking command
-			group_name (str, optional): The name of the group to ping
+			group_name (str): The name of the group to ping
+			message (str): A message to be added to the ping
 		"""
-		# todo - embed for the message being sent
-
-		# todo - build an embed for the context
-		# todo - 	include number of members pinged
-		# todo - 	include the "message_to_send" provided by the command
 
 		member_list = self._get_group_member_list(context, group_name)
 
@@ -203,7 +200,6 @@ class GroupDatabaseManager(commands.Cog):
 			elif member_data[3] == -1:
 				print(f'Ignoring member {member.mention}')
 			else:
-				# invalid options_key
 				print('Invalid options_key')
 
 		channel_embed.title = f'Pings sent to `{member_list[0][0]}`!'
@@ -526,7 +522,7 @@ def setup(bot):
 
 	This is called when a cog is added to the client.
 	"""
-	bot.add_cog(GroupDatabaseManager(bot))
+	bot.add_cog(GroupManager(bot))
 
 def teardown(bot):
 	"""Removes the cog from the bot.

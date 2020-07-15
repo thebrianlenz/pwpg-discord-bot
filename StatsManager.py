@@ -10,12 +10,13 @@ from discord.ext.commands import Bot
 
 from datetime import datetime
 
-class StatsManager(commands.Cog):
+class StatsManager(commands.Cog, name = 'Stats Manager'):
+	"""Keeps track of the most popular posts and emojis"""
+
 	# todo: finish docstrings
 
 	# todo: data retrieval for stats
 	# todo - add db initialization for new file
-
 
 	def __init__(self, bot: Bot):
 		self.bot = bot

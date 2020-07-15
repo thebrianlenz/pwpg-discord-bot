@@ -13,7 +13,8 @@ from botocore.exceptions import ClientError
 from discord.ext import commands
 from discord.ext.commands import Bot
 
-class Reflector(commands.Cog):
+class Reflector(commands.Cog, name = 'Reflector'):
+	"""Rehost v.reddit videos so the embed actually works!"""
 	def __init__(self, bot: Bot):
 		self.bot = bot
 		config = ConfigParser()
