@@ -1,13 +1,14 @@
 import discord
 import asyncio
 
+
 async def prompt_for_input(context, prompt: str):
     def check(inputMessage):
         return inputMessage.author.id is context.author.id
 
     promptedMessage = await context.send(f'{prompt}')
     try:
-        return await context.bot.wait_for("message", check = check, timeout = 60.0)
+        return await context.bot.wait_for("message", check=check, timeout=60.0)
     except:
         await promptedMessage.delete()
         await context.send(f'Input has timed out, skipping input')
@@ -18,6 +19,8 @@ async def prompt_for_input(context, prompt: str):
 # Waits for a up or down from the user that prompted the message
 # Returns True for Up, False for Down
 # Also returns false if timed-out
+
+
 async def prompt_with_thumbs(context, message: str, delete_after_repsonse=False):
     def check(reaction, user):
         return user.id is context.author.id and str(reaction.emoji) in ['👍', '👎'] and reaction.message.id == promptedText.id
@@ -27,13 +30,14 @@ async def prompt_with_thumbs(context, message: str, delete_after_repsonse=False)
     await promptedText.add_reaction('👎')
 
     try:
-        reaction, _user = await context.bot.wait_for("reaction_add", timeout = 10.0, check = check)
+        reaction, _user = await context.bot.wait_for("reaction_add", timeout=10.0, check=check)
     except asyncio.TimeoutError:
         await promptedText.delete()
-        await context.send(f'Please select a response quicker!', delete_after = 10.0)
+        await context.send(f'Please select a response quicker!', delete_after=10.0)
         return False
 
-    if delete_after_repsonse: await promptedText.delete()
+    if delete_after_repsonse:
+        await promptedText.delete()
 
     if reaction.emoji == '👍':
         return True
