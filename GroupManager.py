@@ -191,8 +191,7 @@ class GroupManager(commands.Cog, name='Group Manager'):
         for group in results:
             if group[1] == context.guild.id:
                 embed.add_field(
-                    name=group[0], value=f'{member_count[group[3]]} members')
-                # todo: deal with the plural thingy somehow
+                    name=group[0], value=f'{member_count[group[3]]} {self.plural_selector("member","members",member_count[group[3]])}')
 
         await context.send(embed=embed)
 
@@ -571,6 +570,10 @@ class GroupManager(commands.Cog, name='Group Manager'):
         self.groups_db.execute(sql_group_user_registry)
         self.groups_db.execute(sql_group_alias_registry)
         print('Tables should be initialized')
+
+    def plural_selector(self, singular: str, plural: str, count: int):
+        # todo - docstring and likely move to a helper class? maybe messageIO
+        return singular if abs(count) == 1 else plural
 
     def cog_unload(self):
         """Called when the Cog is removed from the bot. Ensures that the database is closed properly.
