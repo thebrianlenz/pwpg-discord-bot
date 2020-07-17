@@ -114,7 +114,6 @@ class GroupManager(commands.Cog, name='Group Manager'):
             error_check = error.args[0].split(": ")
             if error_check[0] == "UNIQUE constraint failed":
                 conflicts = error_check[1].split(", ")
-                #temp = error_check[1].split(".")
                 print(f'Unique error. {conflicts}')
             else:
                 print(f'Unhandled Integrity Error - {error}')
@@ -132,7 +131,7 @@ class GroupManager(commands.Cog, name='Group Manager'):
                 context (context): The context of the command being invoked
                 group_title (str): A title for the group
         """
-        # todo
+        # todo response
         description = 'descr'
         self._create_group_entry(context, group_title, description)
 
@@ -169,10 +168,6 @@ class GroupManager(commands.Cog, name='Group Manager'):
         for mem in temp:
             print("{} joined at {}".format(mem.name, mem.joined_at))
 
-    # todo - implement flags for various things
-    #			-u user, -a all, -g groups
-    #		-a lists *all* groups and membership count
-    #		-
     @commands.group(name='list',
                     invoke_without_command=True)
     async def command_list(self, context):
@@ -197,21 +192,31 @@ class GroupManager(commands.Cog, name='Group Manager'):
 
     @command_list.command(name='group')
     async def command_list_group(self, context, *, group_name: str):
-        # todo - return an embed of members in the group provided
-        pass
+        group_members = self._get_group_member_list(context, group_name)
+        embed = discord.Embed(
+            title=f'{group_members[0][0]}', description=f'{len(group_members)} {self.plural_selector("member is ", "members are ", len(group_members))} in this group!')
 
-    @command_list.command(name='all')
+        temp = ''
+        mc = commands.MemberConverter()
+        for member in group_members:
+            member_object = await mc.convert(context, str(member[2]))
+            temp += f'{member_object.name}\n'
+
+        embed.add_field(name='Members include:', value=f'{temp}')
+        await context.send(embed=embed)
+
+    @ command_list.command(name='all')
     async def command_list_all(self, context):
         # todo - returns a list of all the groups for the current guild
         pass
 
-    @command_list.command(name='user')
+    @ command_list.command(name='user')
     async def command_list_user(self, context, *, user):
         # todo - return a list of all the groups an individual user belongs to
         # todo - note that this probably should be a hidden command
         pass
 
-    @commands.command(name="ping")
+    @ commands.command(name="ping")
     async def command_ping_group(self, context, group_name: str, *, message=''):
         """Send a message to a group's members.
 
@@ -259,11 +264,11 @@ class GroupManager(commands.Cog, name='Group Manager'):
 
         await channel_message.edit(embed=channel_embed)
 
-    @commands.command(name='update')
+    @ commands.command(name='update')
     async def command_update_group_user_options_key(self, context, group_name, new_key):
         self._set_group_user_options_key(context, group_name, new_key)
 
-    @commands.command(name='init', hidden=True)
+    @ commands.command(name='init', hidden=True)
     async def command_init_tables(self, context):
         self._database_creation()
 
@@ -367,7 +372,7 @@ class GroupManager(commands.Cog, name='Group Manager'):
 
         data = {'user_id': user_id}
 
-        query = """SELECT 
+        query = """SELECT
 						group_registry.group_title,
 						group_registry.guild_id,
 						group_registry.description,
@@ -393,7 +398,7 @@ class GroupManager(commands.Cog, name='Group Manager'):
                 context (context): The context of the invoking command
 
         Returns:
-                list of (group_id: int, group_title: str, group_description: str): The results of the database query for all groups in the current guild. 
+                list of (group_id: int, group_title: str, group_description: str): The results of the database query for all groups in the current guild.
                         Returned as a list of tuples.
         """
         data = {'guild_id': context.guild.id}
