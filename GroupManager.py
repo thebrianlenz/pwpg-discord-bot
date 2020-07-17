@@ -110,6 +110,13 @@ class GroupManager(commands.Cog, name='Group Manager'):
         setattr(context, 'error_being_handled', False)
 
     def _database_error_handler(self, context, error, data: {}):
+        """Usually is called during try:catch when dealing with the sqlite3 databases
+
+        Args:
+            context (context): The context of the error
+            error (Exception): Generally should be sqlite3 exceptions
+            data (dictionary): Dataset that likely caused the error
+        """
         if isinstance(error, sqlite3.IntegrityError):
             error_check = error.args[0].split(": ")
             if error_check[0] == "UNIQUE constraint failed":
@@ -124,11 +131,11 @@ class GroupManager(commands.Cog, name='Group Manager'):
 
     @commands.command(name='create', rest_is_raw=True)
     async def command_create_group(self, context, group_title: str):
-        """Creates a group entry with the title given. TODO: allow a description
+        """Creates a group entry with the given title. TODO: allow a description
         to be given to be associated with the group.
 
         Args:
-                context (context): The context of the command being invoked
+                context (context): The context of the invoking command
                 group_title (str): A title for the group
         """
         # todo response
@@ -137,7 +144,14 @@ class GroupManager(commands.Cog, name='Group Manager'):
 
     @commands.command(name='join', rest_is_raw=True)
     async def command_join_group(self, context, group_name: str):
+        """Adds the invoking user to the group entry with the given name.
+
+        Args:
+            context (context): The context of the invoking command
+            group_name (str): The group to join
+        """
         # todo better response
+
         options = 0
         if self._add_group_user_entry(context, group_name, options):
             await context.message.add_reaction('👍')
@@ -146,6 +160,12 @@ class GroupManager(commands.Cog, name='Group Manager'):
 
     @commands.command(name='leave')
     async def command_leave_group(self, context, group_name: str):
+        """Removes the invoking user from the group provided
+
+        Args:
+            context (context): The context of the invoking command
+            group_name (str): The group to leave
+        """
         # todo better response
         if await MessageIO.prompt_with_thumbs(context, f'Confirm attempt to leave {group_name}?', True):
             if self._delete_group_user_entry(context, group_name):
@@ -157,11 +177,22 @@ class GroupManager(commands.Cog, name='Group Manager'):
 
     @commands.command(name='lookup', rest_is_raw=True, hidden=True)
     async def command_group_lookup(self, context, group_name: str):
+        """Simple helper to lookup a group's id
+
+        Args:
+            context (context): The context of the invoking command
+            group_name (str): The group to search for
+        """
         print(
             f'Lookup command found {self._get_group_id(context, group_name)}')
 
     @commands.command(name='info', hidden=True)
     async def command_info_server(self, context):
+        """A temporary command for retrieving and dumping user join dates
+
+        Args:
+            context (context): The context of the invoking command
+        """
         print(context.guild.owner)
         list = await context.guild.fetch_members().flatten()
         temp = sorted(list, key=lambda x: getattr(x, 'joined_at'))
@@ -174,7 +205,7 @@ class GroupManager(commands.Cog, name='Group Manager'):
         """Lists the memberships of the invoking user.
 
         Args:
-                context (context): The context of the invoking command
+            context (context): The context of the invoking command
         """
         results = self._get_user_memberships(context, context.author.id)
         member_count = self._get_group_member_counts(context)
@@ -192,6 +223,12 @@ class GroupManager(commands.Cog, name='Group Manager'):
 
     @command_list.command(name='group')
     async def command_list_group(self, context, *, group_name: str):
+        """Lists all the members in a specified group
+
+        Args:
+            context (context): The context of the invoking command
+            group_name (str): The group of the members to list
+        """
         group_members = self._get_group_member_list(context, group_name)
         embed = discord.Embed(
             title=f'{group_members[0][0]}', description=f'{len(group_members)} {self.plural_selector("member is ", "members are ", len(group_members))} in this group!')
@@ -265,14 +302,42 @@ class GroupManager(commands.Cog, name='Group Manager'):
         await channel_message.edit(embed=channel_embed)
 
     @ commands.command(name='update')
-    async def command_update_group_user_options_key(self, context, group_name, new_key):
+    async def command_update_group_user_options_key(self, context, group_name: str, new_key):
+        """Update a user's preferences for offline pings for a specific group
+
+        Args:
+            context (context): The context of the invoking command
+            group_name (str): The group to be updated
+            new_key (int): The new key to be used
+        """
+        # todo - allow the user to "select" the option for the group
+        #       could be through messageIO, or just different ways to pass in the value
+        #       instead of using the -1/0/1
         self._set_group_user_options_key(context, group_name, new_key)
 
     @ commands.command(name='init', hidden=True)
     async def command_init_tables(self, context):
+        """Temporary command for initializing the groups.db tables
+
+        Args:
+            context (context): The context of the invoking command
+        """
         self._database_creation()
 
-    def _set_group_user_options_key(self, context, group_name, new_option_key):
+    def _set_group_user_options_key(self, context, group_name: str, new_option_key: int):
+        """Set the options key for the invoking user for a specified group
+
+        Args:
+            context (context): The context of the invoking command
+            group_name (str): The group to be updated
+            new_option_key (int): The new key to be used
+
+        Raises:
+            non: [description] # todo - raise non existing group
+
+        Returns:
+            bool: Returns True if the key was updated successfully
+        """
         group_id = self._get_group_id(context, group_name)
 
         if group_id == -1:
@@ -489,12 +554,12 @@ class GroupManager(commands.Cog, name='Group Manager'):
                 f'An alias of {alias} seems to have been added to group id {group_id}.')
 
     def _add_group_user_entry(self, context, group_name: str, options_key: int):
-        """Adds the invoking user to a group_id.
+        """Adds the invoking user to a specified group.
 
         Args:
                 context (context): The context of the invoking command
                 group_name (str): The group for the user entry to be associated with
-                options_key (int): An options key to be associated with the user (not implemented yet)
+                options_key (int): An options key to be associated with the user (not implemented yet) # todo options key init
 
         Returns:
                 bool: Whether the user addition was successful
@@ -521,6 +586,18 @@ class GroupManager(commands.Cog, name='Group Manager'):
             return True
 
     def _delete_group_user_entry(self, context, group_name: str):
+        """Removes the invoking user from the specified group
+
+        Args:
+            context (context): The context of the invoking command
+            group_name (str): The group to be removed from
+
+        Raises:
+            exception: # todo raise no group exception
+
+        Returns:
+            bool: Returns True if the user was removed successfully
+        """
         group_id = self._get_group_id(context, group_name)
         if group_id == -1:
             # TODO raise exception
