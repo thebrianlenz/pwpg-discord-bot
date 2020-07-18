@@ -129,7 +129,10 @@ class GroupManager(commands.Cog, name='Group Manager'):
             print(f'Operational error - {error}')
             self.groups_db.rollback()
 
-    @commands.command(name='create', rest_is_raw=True)
+    @commands.command(name='create',
+                      brief='Create a new group',
+                      description='Creates a group for users to join and interact with.',
+                      rest_is_raw=True)
     async def command_create_group(self, context, group_title: str):
         """Creates a group entry with the given title. TODO: allow a description
         to be given to be associated with the group.
@@ -142,7 +145,10 @@ class GroupManager(commands.Cog, name='Group Manager'):
         description = 'descr'
         self._create_group_entry(context, group_title, description)
 
-    @commands.command(name='join', rest_is_raw=True)
+    @commands.command(name='join',
+                      brief='Join a group',
+                      description='Adds the user to the specified group.',
+                      rest_is_raw=True)
     async def command_join_group(self, context, group_name: str):
         """Adds the invoking user to the group entry with the given name.
 
@@ -158,7 +164,9 @@ class GroupManager(commands.Cog, name='Group Manager'):
         else:
             await context.message.add_reaction('👎')
 
-    @commands.command(name='leave')
+    @commands.command(name='leave',
+                      brief='Leave a group',
+                      description='Removes the user from the specified group.')
     async def command_leave_group(self, context, group_name: str):
         """Removes the invoking user from the group provided
 
@@ -175,7 +183,11 @@ class GroupManager(commands.Cog, name='Group Manager'):
         else:
             await context.message.add_reaction('👎')
 
-    @commands.command(name='lookup', rest_is_raw=True, hidden=True)
+    @commands.command(name='lookup',
+                      brief='Lookup a group id',
+                      description='Searches for a group\'s id using it\'s name',
+                      rest_is_raw=True,
+                      hidden=True)
     async def command_group_lookup(self, context, group_name: str):
         """Simple helper to lookup a group's id
 
@@ -186,7 +198,9 @@ class GroupManager(commands.Cog, name='Group Manager'):
         print(
             f'Lookup command found {self._get_group_id(context, group_name)}')
 
-    @commands.command(name='info', hidden=True)
+    @commands.command(name='info',
+                      brief='Lookup and dump user join dates',
+                      hidden=True)
     async def command_info_server(self, context):
         """A temporary command for retrieving and dumping user join dates
 
@@ -200,6 +214,8 @@ class GroupManager(commands.Cog, name='Group Manager'):
             print("{} joined at {}".format(mem.name, mem.joined_at))
 
     @commands.group(name='list',
+                    brief='List the user\'s groups.',
+                    description='Lists all of the group memberships for the user.',
                     invoke_without_command=True)
     async def command_list(self, context):
         """Lists the memberships of the invoking user.
@@ -221,7 +237,9 @@ class GroupManager(commands.Cog, name='Group Manager'):
 
         await context.send(embed=embed)
 
-    @command_list.command(name='group')
+    @command_list.command(name='group',
+                          brief='Lists members of a specified group',
+                          description='Lists all members that have joined a specific group.')
     async def command_list_group(self, context, *, group_name: str):
         """Lists all the members in a specified group
 
@@ -253,7 +271,9 @@ class GroupManager(commands.Cog, name='Group Manager'):
         # todo - note that this probably should be a hidden command
         pass
 
-    @ commands.command(name="ping")
+    @commands.command(name="ping",
+                      brief='Ping the members of a group',
+                      description='Sends a direct message to all group members and provides a link to the active text channel.')
     async def command_ping_group(self, context, group_name: str, *, message=''):
         """Send a message to a group's members.
 
@@ -301,7 +321,9 @@ class GroupManager(commands.Cog, name='Group Manager'):
 
         await channel_message.edit(embed=channel_embed)
 
-    @ commands.command(name='update')
+    @commands.command(name='update',
+                      brief='Update your options for a group',
+                      description='Sets the options key for a specific group')
     async def command_update_group_user_options_key(self, context, group_name: str, new_key):
         """Update a user's preferences for offline pings for a specific group
 
@@ -315,7 +337,10 @@ class GroupManager(commands.Cog, name='Group Manager'):
         #       instead of using the -1/0/1
         self._set_group_user_options_key(context, group_name, new_key)
 
-    @ commands.command(name='init', hidden=True)
+    @commands.command(name='init',
+                      brief='Initializes the groups.db table',
+                      description='Creates the initial tables for the database of groups. This should not typically need to be called.',
+                      hidden=True)
     async def command_init_tables(self, context):
         """Temporary command for initializing the groups.db tables
 
