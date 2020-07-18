@@ -13,6 +13,8 @@ from botocore.exceptions import ClientError
 from discord.ext import commands
 from discord.ext.commands import Bot
 
+# todo - sniff for non-embedded vreddit links
+
 
 class Reflector(commands.Cog, name='Reflector'):
     """Rehost v.reddit videos so the embed actually works!"""

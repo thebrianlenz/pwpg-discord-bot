@@ -1,17 +1,17 @@
 """Used for creating, accessing, and managing groups.
 
-	GroupManager functions as an extension for a Discord.py bot. This
-	includes the GroupManager Cog, which handles all associated commands
-	and are registered with the bot that loads this extension.
+    GroupManager functions as an extension for a Discord.py bot. This
+    includes the GroupManager Cog, which handles all associated commands
+    and are registered with the bot that loads this extension.
 
-	This extension creates and reads from a file for Groups of users seperated
-	by Guild ID. This file is saved as groupsData.json in the local directory.
-	These groups can be accessed by users to alert other members of a group,
-	usually for playing games. Requires asyncio and discord.py libraries.
+    This extension creates and reads from a file for Groups of users seperated
+    by Guild ID. This file is saved as groupsData.json in the local directory.
+    These groups can be accessed by users to alert other members of a group,
+    usually for playing games. Requires asyncio and discord.py libraries.
 
-	This extension is generally accessed through adding the GroupManager
-	as a cog to an existing Discord.py Bot.
-	This extension should likely not be loaded as a Python module.
+    This extension is generally accessed through adding the GroupManager
+    as a cog to an existing Discord.py Bot.
+    This extension should likely not be loaded as a Python module.
 """
 from discord.ext import commands
 import sys
@@ -63,28 +63,25 @@ class UserNotFound(commands.BadArgument):
 # TODO: Overall Refactor
 """
 Major:
-	Ping a group
-	Descriptions
-	Better documentation
-	Confirmations (probably the reaction method again)
-	Temp channels? Probably should be its own module, but it should definitely be hooked somehow
+    Descriptions
+    Better documentation
+    Confirmations (probably the reaction method again)
+    Temp channels? Probably should be its own module, but it should definitely be hooked somehow
 Minor:
-	Check a user's group memberships
-	User preferences? (offline ping mainly)
-	Shortcodes? simple symbols for ping, e.g. - ..<group> <message>
-	Temporary group mute for a user
+    Check a user's group memberships
+    User preferences? (offline ping mainly)
+    Shortcodes? simple symbols for ping, e.g. - ..<group> <message>
+    Temporary group mute for a user
 
 Should exceptions be raised for common errors? (group not existing, duplicate entries, etc)
 If exceptions are raised, all calls should likely be wrapped in try blocks to do local handling
-	This makes sense for managing individual exceptions differently per *command* rather than per
-	operation. Likely would result in more helper methods, as many handlers would be similar.
+    This makes sense for managing individual exceptions differently per *command* rather than per
+    operation. Likely would result in more helper methods, as many handlers would be similar.
 
 This could be pushed further to the general database errors. The database errors could raise
 the more "unified" exceptions that would be made, and pass the necessary information along.
 The actual response to the exception would still need to be handled case by case, at the
 command level.
-
-
 """
 
 
@@ -99,8 +96,8 @@ class GroupManager(commands.Cog, name='Group Manager'):
         """This command fires whenever a local Cog error is thrown
 
         Args:
-                context (context): The context of the error being thrown
-                error (Exception): The error being thrown
+            context (context): The context of the error being thrown
+            error (Exception): The error being thrown
         """
         # Flags the context that the cog is handling the error
         setattr(context, 'error_being_handled', True)
@@ -138,8 +135,8 @@ class GroupManager(commands.Cog, name='Group Manager'):
         to be given to be associated with the group.
 
         Args:
-                context (context): The context of the invoking command
-                group_title (str): A title for the group
+            context (context): The context of the invoking command
+            group_title (str): A title for the group
         """
         # todo response
         description = 'descr'
@@ -235,8 +232,10 @@ class GroupManager(commands.Cog, name='Group Manager'):
                 embed.add_field(
                     name=group[0], value=f'{member_count[group[3]]} {self.plural_selector("member","members",member_count[group[3]])}')
 
+        embed.add_footer
         await context.send(embed=embed)
 
+    # todo - probably should include aliases of the group
     @command_list.command(name='group',
                           brief='Lists members of a specified group',
                           description='Lists all members that have joined a specific group.')
@@ -260,27 +259,51 @@ class GroupManager(commands.Cog, name='Group Manager'):
         embed.add_field(name='Members include:', value=f'{temp}')
         await context.send(embed=embed)
 
-    @ command_list.command(name='all')
+    # todo - list group aliases here?
+    @command_list.command(name='all',
+                          brief='Lists all groups of the guild',
+                          description='List the names and descriptions of all groups on the active guild.')
     async def command_list_all(self, context):
-        # todo - returns a list of all the groups for the current guild
-        pass
+        groups_list = self._get_all_groups(context)
 
-    @ command_list.command(name='user')
-    async def command_list_user(self, context, *, user):
-        # todo - return a list of all the groups an individual user belongs to
-        # todo - note that this probably should be a hidden command
-        pass
+        embed = discord.Embed(
+            title=f'There {self.plural_selector("is", "are", len(groups_list))} {len(groups_list)} {self.plural_selector("group","groups",len(groups_list))} on {context.guild.name}!')
 
-    @commands.command(name="ping",
-                      brief='Ping the members of a group',
-                      description='Sends a direct message to all group members and provides a link to the active text channel.')
+        for group in groups_list:
+            embed.add_field(name=group[1], value=group[2], inline=True)
+
+        await context.send(embed=embed)
+
+    @command_list.command(name='user',
+                          description='Lists the memberships of a specified user. Use with a mention of the desired user.',
+                          hidden=True)
+    async def command_list_user(self, context, *, username):
+
+        user = await commands.UserConverter().convert(context, username)
+        results = self._get_user_memberships(context, user.id)
+        member_count = self._get_group_member_counts(context)
+
+        embed = discord.Embed(title='Group Memberships',
+                              description=f'`{user.display_name}` belongs to these groups on `{context.guild.name}`:')
+        embed.set_thumbnail(url=context.guild.icon_url_as(size=32))
+
+        for group in results:
+            if group[1] == context.guild.id:
+                embed.add_field(
+                    name=group[0], value=f'{member_count[group[3]]} {self.plural_selector("member","members",member_count[group[3]])}')
+
+        await context.send(embed=embed)
+
+    @ commands.command(name="ping",
+                       brief='Ping the members of a group',
+                       description='Sends a direct message to all group members and provides a link to the active text channel.')
     async def command_ping_group(self, context, group_name: str, *, message=''):
         """Send a message to a group's members.
 
         Args:
-                context (context): The context of the invoking command
-                group_name (str): The name of the group to ping
-                message (str): A message to be added to the ping
+            context (context): The context of the invoking command
+            group_name (str): The name of the group to ping
+            message (str): A message to be added to the ping
         """
 
         member_list = self._get_group_member_list(context, group_name)
@@ -321,9 +344,9 @@ class GroupManager(commands.Cog, name='Group Manager'):
 
         await channel_message.edit(embed=channel_embed)
 
-    @commands.command(name='update',
-                      brief='Update your options for a group',
-                      description='Sets the options key for a specific group')
+    @ commands.command(name='update',
+                       brief='Update your options for a group',
+                       description='Sets the options key for a specific group')
     async def command_update_group_user_options_key(self, context, group_name: str, new_key):
         """Update a user's preferences for offline pings for a specific group
 
@@ -337,10 +360,10 @@ class GroupManager(commands.Cog, name='Group Manager'):
         #       instead of using the -1/0/1
         self._set_group_user_options_key(context, group_name, new_key)
 
-    @commands.command(name='init',
-                      brief='Initializes the groups.db table',
-                      description='Creates the initial tables for the database of groups. This should not typically need to be called.',
-                      hidden=True)
+    @ commands.command(name='init',
+                       brief='Initializes the groups.db table',
+                       description='Creates the initial tables for the database of groups. This should not typically need to be called.',
+                       hidden=True)
     async def command_init_tables(self, context):
         """Temporary command for initializing the groups.db tables
 
@@ -348,6 +371,43 @@ class GroupManager(commands.Cog, name='Group Manager'):
             context (context): The context of the invoking command
         """
         self._database_creation()
+
+    @ commands.command()
+    async def connect(self, ctx, *, channel: discord.VoiceChannel = None):
+        """
+        Connect to a voice channel
+        This command also handles moving the bot to different channels.
+
+        Params:
+        - channel: discord.VoiceChannel [Optional]
+            The channel to connect to. If a channel is not specified, an attempt to join the voice channel you are in
+            will be made.
+        """
+        if not channel:
+            try:
+                channel = ctx.author.voice.channel
+            except AttributeError:
+                raise discord.InvalidVoiceChannel(
+                    'No channel to join. Please either specify a valid channel or join one.')
+
+        vc = ctx.voice_client
+
+        if vc:
+            if vc.channel.id == channel.id:
+                return
+            try:
+                await vc.move_to(channel)
+            except asyncio.TimeoutError:
+                raise discord.VoiceConnectionError(
+                    f'Moving to channel: <{channel}> timed out.')
+        else:
+            try:
+                await channel.connect()
+            except asyncio.TimeoutError:
+                raise discord.VoiceConnectionError(
+                    f'Connecting to channel: <{channel}> timed out.')
+
+        await ctx.send(f'Connected to: {channel}', delete_after=20)
 
     def _set_group_user_options_key(self, context, group_name: str, new_option_key: int):
         """Set the options key for the invoking user for a specified group
@@ -377,8 +437,8 @@ class GroupManager(commands.Cog, name='Group Manager'):
         }
 
         query = """UPDATE group_user_registry
-				SET options_key = :options_key
-				WHERE user_id = :user_id AND group_id = :group_id"""
+                SET options_key = :options_key
+                WHERE user_id = :user_id AND group_id = :group_id"""
 
         try:
             self.groups_db.execute(query, data)
@@ -395,14 +455,14 @@ class GroupManager(commands.Cog, name='Group Manager'):
         """Retrieves all members of a group
 
         Args:
-                context (context): The context of the invoking command
-                group_name (str): The name of the group to fetch members
+            context (context): The context of the invoking command
+            group_name (str): The name of the group to fetch members
 
         Raises:
-                non: TODO: Raise a non-existing group error
+            non: TODO: Raise a non-existing group error
 
         Returns:
-                list of (group_title, group_id, user_id, options_key): List of tuples containing member information
+            list of (group_title, group_id, user_id, options_key): List of tuples containing member information
         """
         # takes in an alias, and returns the member list including option key
         group_id = self._get_group_id(context, group_name)
@@ -412,14 +472,14 @@ class GroupManager(commands.Cog, name='Group Manager'):
         data = {'group_id': group_id}
 
         query = """SELECT
-					group_registry.group_title,
-					group_user_registry.group_id,
-					group_user_registry.user_id,
-					group_user_registry.options_key
-				FROM group_user_registry
-				INNER JOIN group_registry ON
-					group_user_registry.group_id = group_registry.group_id
-				WHERE group_user_registry.group_id=(:group_id)"""
+                    group_registry.group_title,
+                    group_user_registry.group_id,
+                    group_user_registry.user_id,
+                    group_user_registry.options_key
+                FROM group_user_registry
+                INNER JOIN group_registry ON
+                    group_user_registry.group_id = group_registry.group_id
+                WHERE group_user_registry.group_id=(:group_id)"""
 
         try:
             member_list = self.groups_db.execute(query, data).fetchall()
@@ -433,10 +493,10 @@ class GroupManager(commands.Cog, name='Group Manager'):
         """Count the total users of each group_id and return as a dictionary
 
         Args:
-                context (context): The context of the invoking command
+            context (context): The context of the invoking command
 
         Returns:
-                dictionary of (group_id:member_count): Member counts of each group_id
+            dictionary of (group_id:member_count): Member counts of each group_id
         """
         data = {}
         query = """SELECT group_id, COUNT(*) FROM group_user_registry GROUP BY group_id"""
@@ -453,25 +513,25 @@ class GroupManager(commands.Cog, name='Group Manager'):
         """Retrieves all memberships of a specific user_id.
 
         Args:
-                context (context): The context of the invoking command
-                user_id (int): The id of a specific user to search
+            context (context): The context of the invoking command
+            user_id (int): The id of a specific user to search
 
         Returns:
-                list of (group_title, guild_id, description, group_id, options_key): A list of a user's memberships by group_id as a tuple.
+            list of (group_title, guild_id, description, group_id, options_key): A list of a user's memberships by group_id as a tuple.
         """
 
         data = {'user_id': user_id}
 
         query = """SELECT
-						group_registry.group_title,
-						group_registry.guild_id,
-						group_registry.description,
-						group_user_registry.group_id,
-						group_user_registry.options_key
-					FROM group_registry
-					INNER JOIN group_user_registry ON
-						group_registry.group_id = group_user_registry.group_id
-					WHERE group_user_registry.user_id=(:user_id)"""
+                        group_registry.group_title,
+                        group_registry.guild_id,
+                        group_registry.description,
+                        group_user_registry.group_id,
+                        group_user_registry.options_key
+                    FROM group_registry
+                    INNER JOIN group_user_registry ON
+                        group_registry.group_id = group_user_registry.group_id
+                    WHERE group_user_registry.user_id=(:user_id)"""
 
         try:
             groups_list = self.groups_db.execute(query, data).fetchall()
@@ -485,11 +545,11 @@ class GroupManager(commands.Cog, name='Group Manager'):
         """Fetches a list of tuples for all groups in the current guild.
 
         Args:
-                context (context): The context of the invoking command
+            context (context): The context of the invoking command
 
         Returns:
-                list of (group_id: int, group_title: str, group_description: str): The results of the database query for all groups in the current guild.
-                        Returned as a list of tuples.
+            list of (group_id: int, group_title: str, group_description: str): The results of the database query for all groups in the current guild.
+                Returned as a list of tuples.
         """
         data = {'guild_id': context.guild.id}
 
@@ -505,11 +565,11 @@ class GroupManager(commands.Cog, name='Group Manager'):
         """Fetches the group_id using a title or alias in the context's guild.
 
         Args:
-                context (context): The context of the invoking command
-                alias_to_search (str): The title or alias to search
+            context (context): The context of the invoking command
+            alias_to_search (str): The title or alias to search
 
         Returns:
-                int: A group_id matching the search
+            int: A group_id matching the search
         """
         data = {'alias': alias_to_search, 'guild_id': context.guild.id}
 
@@ -526,12 +586,12 @@ class GroupManager(commands.Cog, name='Group Manager'):
         """Creates an entry for the group_registry table in the groups database.
 
         Args:
-                context (context): The context of the invoking command
-                group_title (str): The title of the group to be added
-                description (str): A related description of the group being added
+            context (context): The context of the invoking command
+            group_title (str): The title of the group to be added
+            description (str): A related description of the group being added
 
         Returns:
-                int: The group_id of the group created. Returns -1 if unsuccessful.
+            int: The group_id of the group created. Returns -1 if unsuccessful.
         """
         data = {
             'group_title': group_title,
@@ -559,16 +619,16 @@ class GroupManager(commands.Cog, name='Group Manager'):
         """Adds an alias to an existing group. Aliases allow multiple names to refer to the same group_id.
 
         Args:
-                context (context): Context of the invoking command
-                group_id (int): The group to be aliased
-                alias (str): The name to be added as an alias
+            context (context): Context of the invoking command
+            group_id (int): The group to be aliased
+            alias (str): The name to be added as an alias
         """
 
         data = {'group_id': group_id,
                 'guild_id': context.guild.id, 'alias': alias}
         try:
             self.groups_db.execute("""INSERT INTO group_alias_registry VALUES
-				(:group_id, :guild_id, :alias)""", data)
+                (:group_id, :guild_id, :alias)""", data)
         except Exception as error:
             self._database_error_handler(context, error, data)
             print(
@@ -582,12 +642,13 @@ class GroupManager(commands.Cog, name='Group Manager'):
         """Adds the invoking user to a specified group.
 
         Args:
-                context (context): The context of the invoking command
-                group_name (str): The group for the user entry to be associated with
-                options_key (int): An options key to be associated with the user (not implemented yet) # todo options key init
+            context (context): The context of the invoking command
+            group_name (str): The group for the user entry to be associated with
+            # todo options key init
+            options_key (int): An options key to be associated with the user (not implemented yet)
 
         Returns:
-                bool: Whether the user addition was successful
+            bool: Whether the user addition was successful
         """
         group_id = self._get_group_id(context, group_name)
         if group_id == -1:
@@ -599,7 +660,7 @@ class GroupManager(commands.Cog, name='Group Manager'):
 
         try:
             self.groups_db.execute("""INSERT INTO group_user_registry VALUES
-				(:group_id, :user_id, :options_key)""", data)
+                (:group_id, :user_id, :options_key)""", data)
         except Exception as error:
             self._database_error_handler(context, error, data)
             print(
@@ -630,7 +691,7 @@ class GroupManager(commands.Cog, name='Group Manager'):
 
         data = {'group_id': group_id, 'user_id': context.author.id}
         query = """DELETE FROM group_user_registry
-				WHERE group_id = :group_id AND user_id = :user_id"""
+                WHERE group_id = :group_id AND user_id = :user_id"""
 
         try:
             self.groups_db.execute(query, data)
@@ -649,29 +710,29 @@ class GroupManager(commands.Cog, name='Group Manager'):
         """Initializes the group database tables.
         """
         sql_group_registry = """CREATE TABLE IF NOT EXISTS group_registry (
-								group_id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,
-								group_title TEXT COLLATE NOCASE,
-								guild_id INTEGER,
-								datetime_created TEXT,
-								description TEXT,
-								UNIQUE(group_title, guild_id)
-							);"""
+                                group_id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,
+                                group_title TEXT COLLATE NOCASE,
+                                guild_id INTEGER,
+                                datetime_created TEXT,
+                                description TEXT,
+                                UNIQUE(group_title, guild_id)
+                            );"""
 
         sql_group_user_registry = """CREATE TABLE IF NOT EXISTS group_user_registry (
-									group_id INTEGER NOT NULL,
-									user_id INTEGER NOT NULL,
-									options_key INTEGER,
-									FOREIGN KEY(group_id) REFERENCES group_registry(group_id) ON DELETE CASCADE,
-									UNIQUE(group_id, user_id)
-								);"""
+                                    group_id INTEGER NOT NULL,
+                                    user_id INTEGER NOT NULL,
+                                    options_key INTEGER,
+                                    FOREIGN KEY(group_id) REFERENCES group_registry(group_id) ON DELETE CASCADE,
+                                    UNIQUE(group_id, user_id)
+                                );"""
 
         sql_group_alias_registry = """CREATE TABLE IF NOT EXISTS group_alias_registry (
-									group_id INTEGER NOT NULL,
-									guild_id INTEGER NOT NULL,
-									alias TEXT COLLATE NOCASE,
-									FOREIGN KEY(group_id) REFERENCES group_registry(group_id) ON DELETE CASCADE,
-									UNIQUE(guild_id, alias)
-								);"""
+                                    group_id INTEGER NOT NULL,
+                                    guild_id INTEGER NOT NULL,
+                                    alias TEXT COLLATE NOCASE,
+                                    FOREIGN KEY(group_id) REFERENCES group_registry(group_id) ON DELETE CASCADE,
+                                    UNIQUE(guild_id, alias)
+                                );"""
 
         self.groups_db.execute(sql_group_registry)
         self.groups_db.execute(sql_group_user_registry)
