@@ -232,7 +232,7 @@ class GroupManager(commands.Cog, name='Group Manager'):
                 embed.add_field(
                     name=group[0], value=f'{member_count[group[3]]} {self.plural_selector("member","members",member_count[group[3]])}')
 
-        embed.add_footer
+        embed.set_footer(text='Use the help command to see other uses')
         await context.send(embed=embed)
 
     # todo - probably should include aliases of the group
