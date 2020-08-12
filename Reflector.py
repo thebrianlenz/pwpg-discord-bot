@@ -14,6 +14,8 @@ from discord.ext import commands
 from discord.ext.commands import Bot
 
 # todo - sniff for non-embedded vreddit links
+# todo - build an embed for the title and link to the original reddit thread
+#               probably should just replace the original message call
 
 
 class Reflector(commands.Cog, name='Reflector'):

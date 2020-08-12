@@ -83,6 +83,9 @@ the more "unified" exceptions that would be made, and pass the necessary informa
 The actual response to the exception would still need to be handled case by case, at the
 command level.
 """
+# todo - robust responses for "major" commands (create, delete, join, leave)
+# todo - delete group entry, needs some sort of confirmation
+# todo - bulk set a user's preferences for pings
 
 
 class GroupManager(commands.Cog, name='Group Manager'):
