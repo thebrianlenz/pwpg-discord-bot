@@ -89,7 +89,7 @@ command level.
 
 
 class GroupManager(commands.Cog, name='Group Manager'):
-    """Join different groups for easy pings and text chats."""
+    """Join groups for easy pings and text chats."""
 
     def __init__(self, bot: Bot):
         self.bot = bot
@@ -141,9 +141,12 @@ class GroupManager(commands.Cog, name='Group Manager'):
             context (context): The context of the invoking command
             group_title (str): A title for the group
         """
-        # todo response
+
         description = 'descr'
-        self._create_group_entry(context, group_title, description)
+        group_id = self._create_group_entry(context, group_title, description)
+        if group_id != -1:
+            # todo expand response (suggest commands?, give info on created group)
+            await context.send(f'A new group was created!')
 
     @commands.command(name='join',
                       brief='Join a group',
@@ -161,8 +164,10 @@ class GroupManager(commands.Cog, name='Group Manager'):
         options = 0
         if self._add_group_user_entry(context, group_name, options):
             await context.message.add_reaction('👍')
+            await context.send(f'{context.author} has been added to `{group_name}`')
         else:
             await context.message.add_reaction('👎')
+            await context.send(f'{context.author} could not be added to `{group_name}`')
 
     @commands.command(name='leave',
                       brief='Leave a group',
@@ -297,9 +302,9 @@ class GroupManager(commands.Cog, name='Group Manager'):
 
         await context.send(embed=embed)
 
-    @ commands.command(name="ping",
-                       brief='Ping the members of a group',
-                       description='Sends a direct message to all group members and provides a link to the active text channel.')
+    @commands.command(name="ping",
+                      brief='Ping the members of a group',
+                      description='Sends a direct message to all group members and provides a link to the active text channel.')
     async def command_ping_group(self, context, group_name: str, *, message=''):
         """Send a message to a group's members.
 
@@ -347,9 +352,9 @@ class GroupManager(commands.Cog, name='Group Manager'):
 
         await channel_message.edit(embed=channel_embed)
 
-    @ commands.command(name='update',
-                       brief='Update your options for a group',
-                       description='Sets the options key for a specific group')
+    @commands.command(name='update',
+                      brief='Update your options for a group',
+                      description='Sets the options key for a specific group')
     async def command_update_group_user_options_key(self, context, group_name: str, new_key):
         """Update a user's preferences for offline pings for a specific group
 
@@ -363,10 +368,10 @@ class GroupManager(commands.Cog, name='Group Manager'):
         #       instead of using the -1/0/1
         self._set_group_user_options_key(context, group_name, new_key)
 
-    @ commands.command(name='init',
-                       brief='Initializes the groups.db table',
-                       description='Creates the initial tables for the database of groups. This should not typically need to be called.',
-                       hidden=True)
+    @commands.command(name='init',
+                      brief='Initializes the groups.db table',
+                      description='Creates the initial tables for the database of groups. This should not typically need to be called.',
+                      hidden=True)
     async def command_init_tables(self, context):
         """Temporary command for initializing the groups.db tables
 
@@ -375,7 +380,7 @@ class GroupManager(commands.Cog, name='Group Manager'):
         """
         self._database_creation()
 
-    @ commands.command()
+    @commands.command()
     async def connect(self, ctx, *, channel: discord.VoiceChannel = None):
         """
         Connect to a voice channel
@@ -585,6 +590,33 @@ class GroupManager(commands.Cog, name='Group Manager'):
         else:
             return group_id
 
+    def _get_group_by_id(self, context, group_id_to_search: int):
+        """Fetches a group and associated information through an ID lookup.
+
+        Args:
+            context (context): The contxet of the invoking command
+            group_id (int): The ID of a group to search for
+        """
+        data = {'group_id': group_id_to_search, 'guild': context.guild.id}
+
+        try:
+            group = self.groups_db.execute(
+                """SELECT 
+                        group_id,
+                        group_title,
+                        guild_id,
+                        datetime_created,
+                        description
+                    FROM group_registry
+                    WHERE group_id=(:group_id)"""
+            )
+        except Exception as error:
+            self._database_error_handler(context, error, data)
+            return None
+
+        # todo: probably want it returned as a dict, and including aliases
+        return group
+
     def _create_group_entry(self, context, group_title: str, description: str):
         """Creates an entry for the group_registry table in the groups database.
 
@@ -651,12 +683,12 @@ class GroupManager(commands.Cog, name='Group Manager'):
             options_key (int): An options key to be associated with the user (not implemented yet)
 
         Returns:
-            bool: Whether the user addition was successful
+            int: The id of the target group. -1 if none is found
         """
         group_id = self._get_group_id(context, group_name)
         if group_id == -1:
             # todo - Raise exception here for group not existing?
-            return False
+            return group_id
 
         data = {'group_id': group_id, 'user_id': context.author.id,
                 'options_key': options_key}
@@ -668,11 +700,11 @@ class GroupManager(commands.Cog, name='Group Manager'):
             self._database_error_handler(context, error, data)
             print(
                 f'User id {data["user_id"]} could not be added to {group_id}')
-            return False
+            return -1
         else:
             self.groups_db.commit()
             print(f'Added user id {data["user_id"]} to group id {group_id}')
-            return True
+            return group_id
 
     def _delete_group_user_entry(self, context, group_name: str):
         """Removes the invoking user from the specified group
