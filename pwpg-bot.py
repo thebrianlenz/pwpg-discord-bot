@@ -10,7 +10,7 @@ import discord
 from discord.ext import commands
 from discord.ext.commands import Bot
 
-BOT_PREFIX = ("!", "$")
+BOT_PREFIX = (".", "$")
 
 config = ConfigParser()
 bot = Bot(command_prefix=BOT_PREFIX, case_insensitive=True)
