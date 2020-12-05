@@ -1,10 +1,6 @@
 """ Heck the Groups, we goin' roles
 
-    Create a role
-
-
-    create a role with determined perms
-        place within the role heirarchy (within categories?)
+    Have determined conventions for naming schemes
 
     - command based
     create role selection message
@@ -18,12 +14,18 @@
     create the role selection message
         populate message with selectable roles
             create corresponding emojis
+
+    todo - perm checks for create/delete
 """
 import discord
 from discord.ext import commands
 from discord.ext.commands import Bot
+from discord.utils import get
 from operator import attrgetter
 import asyncio
+
+GROUP_CATEGORY_NAME = """- Groups -"""
+COSMETIC_CATEGORY_NAME = """- Colors -"""
 
 
 class RoleManager(commands.Cog, name="Role Manager"):
@@ -75,92 +77,149 @@ class RoleManager(commands.Cog, name="Role Manager"):
                       brief='List all roles.',
                       description='Lists all the joinable roles?',
                       rest_is_raw=True)
-    async def command_rolecall(self, context, category: str):
+    async def command_rolecall(self, context):
         """Lists all the joinable roles on the guild.
 
         Args:
             context (context): The context of the invoking command
         """
-        print(self._fetch_role_category(context, category))
+        print(self._fetch_category_roles(context))
+        print(self._fetch_category_roles(context, COSMETIC_CATEGORY_NAME))
 
-    def _fetch_split_roles_list(self, context):
-        """Returns a list of tuples, separated by the categories provided.
+    @commands.group(name='list',
+                    aliases=['ls'],
+                    brief='List all roles available.',
+                    description='List all the roles available to be joined within the RoleManager module.',
+                    invoke_without_command=True)
+    async def command_list(self, context):
+        await context.send(embed=self._build_group_list_embed(context))
+
+    @command_list.command(name='groups',
+                          aliases=['group', 'grps', 'grp'],
+                          brief='List available groups.',
+                          description='Lists the groups available to join.')
+    async def command_list_groups(self, context):
+        message = ""
+        for role in self._fetch_category_roles(context, GROUP_CATEGORY_NAME):
+            message += f"{role.name}\n"
+
+        await context.send(f"Groups that are available to join.```{message}```")
+
+    @command_list.command(name='colors',
+                          aliases=['colours', 'color', 'clr', 'clrs'],
+                          brief='List available colors.',
+                          description='Lists the colors available to be assigned')
+    async def command_list_colors(self, context):
+        message = self._build_color_list_message(context)
+
+        await context.send(f"Colors that are available to use. {message}")
+
+    @commands.command(name='create',
+                      brief='Creates a role.',
+                      description='Creates a new role in the current guild.',
+                      rest_is_raw=True)
+    async def command_create_role(self, context, name: str):
+        await self._create_new_role(context, name)
+
+    def _build_group_list_embed(self, context):
+        """Creates an embed for all roles in the Group Category
 
         Args:
             context (context): The context of the invoking command
 
         Returns:
-            List of (str, [Role]): List of tuples for categories of roles
+            discord.Embed: An embed containing all the roles as fields
         """
-        categories = ('- Colors -', '- Games -')
-        roles_list = context.guild.roles
-        roles_list.reverse()
+        embed = discord.Embed(
+            title=f"Roles on {context.guild.name}", color=0x000000)
+        for role in self._fetch_category_roles(context):
+            embed.add_field(
+                name=role.name, value=f"{len(role.members)} {self.plural_selector('member','members', len(role.members))}")
 
-        # Find the index for each split to be made
-        indices = []
-        for role in roles_list:
-            if role.name in categories:
-                split = roles_list.index(role)
-                indices.append(split)
+        embed.set_footer(
+            text=f'Use {context.prefix}assign to join a role or {context.prefix}help for more information')
 
-        # Create a new lists for the split lists
-        split_lists = []
-        start = 0
-        for i in indices:
-            split_lists.append(roles_list[start:i])
-            start = i
-        split_lists.append(roles_list[start:])
+        return embed
 
-        # Assemble role grouping into tuples with category name
-        final_lists = []
-        for category in split_lists:
-            if category[0].name.startswith('-'):
-                category_name = category.pop(0).name.strip('- ')
-                final_lists.append((category_name, category))
-            else:
-                final_lists.append(('Uncategorized', category))
-        return final_lists
+    def _build_color_list_message(self, context):
+        """Create a message for all roles in the Cosmetic Category
 
-    def _fetch_role_category(self, context, category: str):
-        # pull out desired roles within that category?
-        # return the list of roles
+        Args:
+            context (context): The context of the invoking command
 
-        roles_list = context.guild.roles
-        roles_list.reverse()
+        Returns:
+            str: A message containing all the cosmetic roles
+        """
+        message = ''
+        for role in self._fetch_category_roles(context, COSMETIC_CATEGORY_NAME):
+            message += f'{role.mention}\n'
 
-        # categories_list.sort(key=attrgetter('position'), reverse=True)
-        # for role in categories_list:
-        #     if role.name.strip('- ').lower == category.lower:
+        return message
 
-        for i, role in enumerate(roles_list):
-            if role.name.strip('- ').lower() == category.lower():
-                index_start = i
-                print(f'index start: {index_start}')
-                break
-            else:
-                index_start = 0
+    async def _build_group_reaction_embed(self, context):
+        # needs to build the message embed for the available groups to join
+        # assign reactions to each group and add corresponding reactions to the message for interaction
 
-        for i, role in enumerate(roles_list[index_start+1:]):
-            if role.name.startswith('-'):
-                index_end = i
-                print(f'index end: {index_end}')
-                break
-        else:
-            index_end = len(roles_list) - 1
-            print(f'index end: {index_end}')
+        # likely will need a parallel function for the cosmetic roles
+        pass
 
-        # make a list of the roles from the start of the category by position
-        # to the start of the next category - 1 by position
-        roles_in_category = []
-        roles_in_category.append(roles_list[index_start:index_end])
+    async def _create_new_role(self, context, name: str, target=GROUP_CATEGORY_NAME, channel=False, color: discord.Color = None):
+        """Create a new role and position within the heirarchy based on the target category
 
-        return roles_in_category
+        Args:
+            context (context): The context of the invoking command
+            name (str): The name to assign to the new role
+            target (str, optional): The category to sort the role under. Defaults to GROUP_CATEGORY_NAME.
+            channel (bool, optional): Unimplemented. Defaults to False.
+            color (discord.Color, optional): Unimplemented. Defaults to None.
+        """
+        target_role = get(context.guild.roles, name=target)
+        target_position = target_role.position
 
+        new_role = await context.guild.create_role(
+            name=name, mentionable=True, reason=f"Role created by {context.author}")
 
-"""Find the category boundaries within the role list (start and beginning)
-    Place category name along with the list of roles as a tuple
-        If there is no category, "uncategorized" for tuple
-    Remove category role"""
+        await context.guild.edit_role_positions(positions={new_role: target_position})
+
+    def _fetch_category_roles(self, context, category_target=GROUP_CATEGORY_NAME):
+        """Fetch all roles sorted below a Category Role. Stops at the next category, or at the bottom of the role heirarchy
+
+        Args:
+            context (context): The context of the invoking command
+            category_target (str): The category to search for in the role list. Defaults to GROUP_CATEGORY_NAME.
+
+        Returns:
+            Role[]: A list of roles
+        """
+        try:
+            # ask for a specific category
+            roles_list = context.guild.roles  # preload roles list
+            # find the target category's role
+            category_role = get(roles_list, name=category_target)
+            # preload the position of the category
+            target_category_position = category_role.position
+
+            category_role_list = []
+
+            for i in range(target_category_position - 1, 0, -1):
+                if roles_list[i].name.startswith('-') or roles_list[i].name is None:
+                    break
+                else:
+                    category_role_list.append(roles_list[i])
+
+            return category_role_list
+        except Exception as error:
+            print(f"Errored when fetching roles in {category_target}\n{error}")
+
+    def _delete_role(self, context):
+        # deletes a role
+        # needs confirmation
+        # needs to ensure it's not deleting a role it shouldn't (namely anything not joinable)
+        pass
+
+    def plural_selector(self, singular: str, plural: str, count: int):
+        # todo - docstring and likely move to a helper class? maybe messageIO
+        return singular if abs(count) == 1 else plural
 
 
 def setup(bot):

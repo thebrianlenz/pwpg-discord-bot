@@ -16,6 +16,7 @@ from discord.ext.commands import Bot
 # todo - sniff for non-embedded vreddit links
 # todo - build an embed for the title and link to the original reddit thread
 #               probably should just replace the original message call
+# todo - migrate to self-hosted storage, rather than amazon's s3
 
 
 class Reflector(commands.Cog, name='Reflector'):

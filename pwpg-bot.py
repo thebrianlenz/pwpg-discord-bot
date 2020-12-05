@@ -13,13 +13,15 @@ from discord.ext.commands import Bot
 BOT_PREFIX = (".", "$")
 
 config = ConfigParser()
-bot = Bot(command_prefix=BOT_PREFIX, case_insensitive=True)
+intents = discord.Intents.default()
+intents.members = True
+bot = Bot(command_prefix=BOT_PREFIX, case_insensitive=True, intents=intents)
 
 config.read('config.ini')
 TOKEN = config.get('main', 'token')
 
 initial_modules = [
-    'GroupManager',
+    'RoleManager',
     'StatsManager',
     'Reflector'
 ]
