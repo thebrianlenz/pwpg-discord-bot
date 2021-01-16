@@ -4,10 +4,11 @@ import asyncio
 import sys
 import traceback
 import aiosqlite
+import datetime
 from configparser import ConfigParser
 
 import discord
-from discord.ext import commands
+from discord.ext import commands, tasks
 from discord.ext.commands import Bot
 
 BOT_PREFIX = (".", "$")
@@ -25,6 +26,8 @@ initial_modules = [
     'StatsManager',
     'Reflector'
 ]
+
+channel_chatters = {}
 
 
 @bot.event
@@ -49,6 +52,37 @@ async def on_command_error(context, error):
 
     # Some other error, let the cooldown reset
     context.command.reset_cooldown(context)
+
+
+# todo - move this to a cog for misc stuff
+@bot.event
+async def on_typing(channel, user, when):
+    chatter_expiration_check(when)
+
+    if channel.id not in channel_chatters:
+        channel_chatters[channel.id] = {}
+
+    expires = when + datetime.timedelta(seconds=10)
+    channel_chatters[channel.id][user.id] = expires
+
+    await chatter_count_check()
+
+
+def chatter_expiration_check(current_time):
+    for c in list(channel_chatters.keys()):
+        for u, e in list(channel_chatters[c].items()):
+            if e < current_time:
+                print(f'removing {u}')
+                channel_chatters[c].pop(u, None)
+
+
+async def chatter_count_check():
+    for channel in channel_chatters:
+        if len(channel_chatters[channel]) >= 4:
+            guild_channel = bot.get_channel(channel)
+            await guild_channel.send(file=discord.File('several_people.gif'), delete_after=3)
+            channel_chatters[channel].clear()
+            print('several people are typing?')
 
 
 @bot.command(name='about',
