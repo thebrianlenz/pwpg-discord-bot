@@ -121,6 +121,10 @@ class RoleManager(commands.Cog, name="Role Manager"):
     async def command_create_role(self, context, name: str):
         await self._create_new_role(context, name)
 
+    async def command_delete_role(self, context, name: str):
+        # todo - delete the specified role
+        pass
+
     def _build_group_list_embed(self, context):
         """Creates an embed for all roles in the Group Category
 
