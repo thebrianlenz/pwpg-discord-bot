@@ -121,8 +121,13 @@ class RoleManager(commands.Cog, name="Role Manager"):
     async def command_create_role(self, context, name: str):
         await self._create_new_role(context, name)
 
+    @commands.command(name='delete',
+                      brief='Deletes a role.',
+                      description='Deletes the specified role in the current guild.',
+                      rest_is_raw=True)
     async def command_delete_role(self, context, name: str):
         # todo - delete the specified role
+        self._delete_role(context, name)
         pass
 
     def _build_group_list_embed(self, context):
@@ -215,10 +220,15 @@ class RoleManager(commands.Cog, name="Role Manager"):
         except Exception as error:
             print(f"Errored when fetching roles in {category_target}\n{error}")
 
-    def _delete_role(self, context):
+    def _delete_role(self, context, name: str):
         # deletes a role
         # needs confirmation
         # needs to ensure it's not deleting a role it shouldn't (namely anything not joinable)
+        role = get(context.guild.roles, name=name)
+        print('name: ' + role.name)
+        print(f'tags: {role.tags}')
+        print(f'managed: {role.managed}')
+
         pass
 
     def plural_selector(self, singular: str, plural: str, count: int):
