@@ -10,16 +10,16 @@ This is a Discord bot made using the [discord.py API wrapper](https://github.com
 
 # Installation and Usage
 
-Requirements as of 01/23/21:
-
-    Python 3.8.3 32-bit
-    discord.py 1.6.0
+Install the the python dependencies in requirements.txt:
+`pip install -r requirements.txt`
+or, to make a local install of the packages:
+`pip install -r requirements.txt --user`
 
 Create an application and bot using the [Discord developer portal](link). Use the token to populate a `config.ini` file in the root directory. If you will be using the Reflector module, figure it out on your own until I feel like explaining it, or just disable it as a default module.
 
 config.ini format:
 
-```py
+```ini
 [main]
 token = # Token for the bot
 
