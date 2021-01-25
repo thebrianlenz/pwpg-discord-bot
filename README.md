@@ -40,4 +40,4 @@ bucket_name =
 - multiple people are typing response
 - "async with typing" for longer computations
 - refactor file structure, including cogs/utils
-
+- allow giving timezones by location with https://pythonhosted.org/pytz/
