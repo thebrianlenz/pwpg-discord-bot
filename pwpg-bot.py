@@ -1,13 +1,11 @@
 # Uses Python 3.8.3
-import asyncio
 import sys
 import traceback
-import aiosqlite
 import datetime
 from configparser import ConfigParser
 
 import discord
-from discord.ext import commands, tasks
+from discord.ext import commands
 from discord.ext.commands import Bot
 
 BOT_PREFIX = (".", "$")
@@ -22,8 +20,9 @@ TOKEN = config.get('main', 'token')
 
 initial_modules = [
     'RoleManager',
+    'TimeManager',
     'StatsManager',
-    'Reflector'
+    'Reflector',
 ]
 
 channel_chatters = {}
@@ -154,7 +153,7 @@ async def _reloadSecretHitler(context):
         bot.reload_extension('SecretHitler')
         await context.message.add_reaction('👍')
     except Exception as e:
-        print(f'Failed to load module SH.', e)
+        print(f'Failed to load module SH:{e}')
         await context.message.add_reaction('👎')
 
 
