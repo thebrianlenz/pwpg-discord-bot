@@ -3,4 +3,4 @@ groupsData.json
 config.ini
 __pycache__
 .vscode
-pwpg-discord-bot.code-workspace
+*.code-workspace
