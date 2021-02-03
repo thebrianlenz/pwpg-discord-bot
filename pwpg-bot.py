@@ -78,7 +78,7 @@ async def chatter_count_check():
     for channel in channel_chatters:
         if len(channel_chatters[channel]) >= 4:
             guild_channel = bot.get_channel(channel)
-            await guild_channel.send(file=discord.File('several_people.gif'), delete_after=3)
+            await guild_channel.send(file=discord.File('data/several_people.gif'), delete_after=3)
             channel_chatters[channel].clear()
             print('several people are typing?')
 
