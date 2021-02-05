@@ -16,6 +16,7 @@
             create corresponding emojis
 
     todo - perm checks for create/delete
+    todo - checks/creation of categorical roles
 """
 import discord
 from discord.ext import commands
@@ -182,6 +183,7 @@ class RoleManager(commands.Cog, name="Role Manager"):
             channel (bool, optional): Unimplemented. Defaults to False.
             color (discord.Color, optional): Unimplemented. Defaults to None.
         """
+        # todo - sanitize input, preventing "-" specifically
         target_role = get(context.guild.roles, name=target)
         target_position = target_role.position
 
@@ -221,9 +223,9 @@ class RoleManager(commands.Cog, name="Role Manager"):
             print(f"Errored when fetching roles in {category_target}\n{error}")
 
     def _delete_role(self, context, name: str):
-        # deletes a role
-        # needs confirmation
-        # needs to ensure it's not deleting a role it shouldn't (namely anything not joinable)
+        # todo - deletes a role
+        # todo - needs confirmation
+        # todo - needs to ensure it's not deleting a role it shouldn't (namely anything not joinable)
         role = get(context.guild.roles, name=name)
         print('name: ' + role.name)
         print(f'tags: {role.tags}')

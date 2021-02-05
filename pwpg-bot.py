@@ -19,10 +19,10 @@ config.read('config.ini')
 TOKEN = config.get('main', 'token')
 
 initial_modules = [
-    'RoleManager',
-    'TimeManager',
-    'StatsManager',
-    'Reflector',
+    'cogs.RoleManager',
+    'cogs.TimeManager',
+    'cogs.StatsManager',
+    'cogs.Reflector',
 ]
 
 channel_chatters = {}
