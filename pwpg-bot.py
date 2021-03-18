@@ -22,7 +22,7 @@ initial_modules = [
     'cogs.RoleManager',
     'cogs.TimeManager',
     'cogs.StatsManager',
-    'cogs.Reflector',
+    'cogs.Reflector'
 ]
 
 channel_chatters = {}
