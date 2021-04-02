@@ -25,7 +25,7 @@ class Reflector(commands.Cog, name='Reflector'):
     def __init__(self, bot: Bot):
         self.bot = bot
         config = ConfigParser()
-        config.read('config.ini')
+        config.read('data/config.ini')
 
         CLIENT_ID = config.get('praw', 'reddit_client_id')
         CLIENT_SECRET = config.get('praw', 'reddit_client_secret')
