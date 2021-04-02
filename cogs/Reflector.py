@@ -76,7 +76,7 @@ class Reflector(commands.Cog, name='Reflector'):
         submission = await self.get_submission_object(target_url)
         # Removed {submission.title} to reduce name length
         title_pattern = f'{submission.name}'
-        heirarchy = f'data/videos/'
+        heirarchy = f'videos/'
         ydl_opts = {'prefer_ffmpeg': True,
                     'outtmpl': f'{heirarchy}{title_pattern}.%(ext)s'}
 
