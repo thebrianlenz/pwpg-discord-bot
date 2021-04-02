@@ -15,7 +15,7 @@ intents = discord.Intents.default()
 intents.members = True
 bot = Bot(command_prefix=BOT_PREFIX, case_insensitive=True, intents=intents)
 
-config.read('config.ini')
+config.read('data/config.ini')
 TOKEN = config.get('main', 'token')
 
 initial_modules = [

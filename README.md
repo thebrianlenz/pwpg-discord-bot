@@ -15,7 +15,7 @@ Install the the python dependencies in requirements.txt:
 or, to make a local install of the packages:
 `pip install -r requirements.txt --user`
 
-Create an application and bot using the [Discord developer portal](link). Use the token to populate a `config.ini` file in the root directory. If you will be using the Reflector module, figure it out on your own until I feel like explaining it, or just disable it as a default module.
+Create an application and bot using the [Discord developer portal](link). Use the token to populate a `config.ini` file in a /data/ directory. If you will be using the Reflector module, figure it out on your own until I feel like explaining it, or just disable it as a default module.
 
 config.ini format:
 

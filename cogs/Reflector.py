@@ -25,7 +25,7 @@ class Reflector(commands.Cog, name='Reflector'):
     def __init__(self, bot: Bot):
         self.bot = bot
         config = ConfigParser()
-        config.read('config.ini')
+        config.read('data/config.ini')
 
         CLIENT_ID = config.get('praw', 'reddit_client_id')
         CLIENT_SECRET = config.get('praw', 'reddit_client_secret')
@@ -76,7 +76,7 @@ class Reflector(commands.Cog, name='Reflector'):
         submission = await self.get_submission_object(target_url)
         # Removed {submission.title} to reduce name length
         title_pattern = f'{submission.name}'
-        heirarchy = f'data/videos/'
+        heirarchy = f'videos/'
         ydl_opts = {'prefer_ffmpeg': True,
                     'outtmpl': f'{heirarchy}{title_pattern}.%(ext)s'}
 
