@@ -9,23 +9,23 @@ from discord.ext import commands
 from discord.ext.commands import Bot
 
 BOT_PREFIX = (".", "$")
+DATA_PATH = 'data/config.ini'
 
 config = ConfigParser()
 intents = discord.Intents.default()
 intents.members = True
 bot = Bot(command_prefix=BOT_PREFIX, case_insensitive=True, intents=intents)
 
-config.read('data/config.ini')
+config.read(DATA_PATH)
 TOKEN = config.get('main', 'token')
 
 initial_modules = [
     'cogs.RoleManager',
     'cogs.TimeManager',
     'cogs.StatsManager',
-    'cogs.Reflector'
+    'cogs.Reflector',
+    'cogs.Extras'
 ]
-
-channel_chatters = {}
 
 
 @bot.event
@@ -33,7 +33,6 @@ async def on_command_error(context, error):
 
     if hasattr(context, 'error_being_handled') and context.error_being_handled:
         return
-
     if isinstance(error, commands.CommandNotFound):
         print(error)
         return
@@ -50,37 +49,6 @@ async def on_command_error(context, error):
 
     # Some other error, let the cooldown reset
     context.command.reset_cooldown(context)
-
-
-# todo - move this to a cog for misc stuff
-@bot.event
-async def on_typing(channel, user, when):
-    chatter_expiration_check(when)
-
-    if channel.id not in channel_chatters:
-        channel_chatters[channel.id] = {}
-
-    expires = when + datetime.timedelta(seconds=10)
-    channel_chatters[channel.id][user.id] = expires
-
-    await chatter_count_check()
-
-
-def chatter_expiration_check(current_time):
-    for c in list(channel_chatters.keys()):
-        for u, e in list(channel_chatters[c].items()):
-            if e < current_time:
-                print(f'removing {u}')
-                channel_chatters[c].pop(u, None)
-
-
-async def chatter_count_check():
-    for channel in channel_chatters:
-        if len(channel_chatters[channel]) >= 4:
-            guild_channel = bot.get_channel(channel)
-            await guild_channel.send(file=discord.File('data/several_people.gif'), delete_after=3)
-            channel_chatters[channel].clear()
-            print('several people are typing?')
 
 
 @bot.command(name='about',
@@ -145,16 +113,6 @@ async def _reload(context, module):
 @bot.command(name='modules', hidden=True)
 async def _listModules(context):
     print(str(bot.extensions.keys()))
-
-
-@bot.command(name='rlsh', hidden=True)
-async def _reloadSecretHitler(context):
-    try:
-        bot.reload_extension('SecretHitler')
-        await context.message.add_reaction('👍')
-    except Exception as e:
-        print(f'Failed to load module SH:{e}')
-        await context.message.add_reaction('👎')
 
 
 @bot.event
