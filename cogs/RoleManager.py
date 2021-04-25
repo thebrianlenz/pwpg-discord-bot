@@ -87,40 +87,69 @@ class RoleManager(commands.Cog, name="Role Manager"):
         print(self._fetch_category_roles(context))
         print(self._fetch_category_roles(context, COSMETIC_CATEGORY_NAME))
 
+    # =======================
+    # List commands
+    # =======================
+
     @commands.group(name='list',
                     aliases=['ls'],
                     brief='List all roles available.',
                     description='List all the roles available to be joined within the RoleManager module.',
                     invoke_without_command=True)
     async def command_list(self, context):
+        # TODO - make this do something different than the regular list group
         await context.send(embed=self._build_group_list_embed(context))
 
     @command_list.command(name='groups',
                           aliases=['group', 'grps', 'grp'],
                           brief='List available groups.',
                           description='Lists the groups available to join.')
-    async def command_list_groups(self, context):
-        message = ""
-        for role in self._fetch_category_roles(context, GROUP_CATEGORY_NAME):
-            message += f"{role.name}\n"
-
-        await context.send(f"Groups that are available to join.```{message}```")
+    async def subcommand_list_groups(self, context):
+        await context.send(embed=self._build_group_list_embed(context))
 
     @command_list.command(name='colors',
                           aliases=['colours', 'color', 'clr', 'clrs'],
                           brief='List available colors.',
                           description='Lists the colors available to be assigned')
-    async def command_list_colors(self, context):
-        message = self._build_color_list_message(context)
+    async def subcommand_list_colors(self, context):
+        await context.send(embed=self._build_color_list_embed(context))
 
-        await context.send(f"Colors that are available to use. {message}")
+    # =======================
+    # Create commands
+    # =======================
 
-    @commands.command(name='create',
-                      brief='Creates a role.',
-                      description='Creates a new role in the current guild.',
-                      rest_is_raw=True)
-    async def command_create_role(self, context, name: str):
-        await self._create_new_role(context, name)
+    @commands.group(name='create',
+                    brief='Creates a role.',
+                    description='Creates a new role in the current guild.',
+                    invoke_without_command=True,
+                    pass_context=True)
+    async def command_create(self, context):
+        """Used to create a new role for the current guild.
+
+        Use the subcommand `group` or `color` to indicate the desired role type.
+        """
+        # await self._create_new_role(context, name, target=GROUP_CATEGORY_NAME)
+        print('main create')
+
+    @command_create.command(name='group',
+                            brief='Creates a new group',
+                            description='Creates a new group in the current guild.',
+                            pass_context=True,
+                            rest_is_raw=True)
+    async def subcommand_create_group(self, context, name: str):
+        print('group create')
+
+    @command_create.command(name='color',
+                            brief='Creates a new color',
+                            description='Creates a new color in the current guild.',
+                            pass_context=True,
+                            rest_is_raw=True)
+    async def subcommand_create_color(self, context, name: str):
+        print('color create')
+
+    # =======================
+    # Delete commands
+    # =======================
 
     @commands.command(name='delete',
                       brief='Deletes a role.',
@@ -151,7 +180,7 @@ class RoleManager(commands.Cog, name="Role Manager"):
 
         return embed
 
-    def _build_color_list_message(self, context):
+    def _build_color_list_embed(self, context):
         """Create a message for all roles in the Cosmetic Category
 
         Args:
@@ -160,11 +189,18 @@ class RoleManager(commands.Cog, name="Role Manager"):
         Returns:
             str: A message containing all the cosmetic roles
         """
-        message = ''
-        for role in self._fetch_category_roles(context, COSMETIC_CATEGORY_NAME):
-            message += f'{role.mention}\n'
 
-        return message
+        embed = discord.Embed(
+            title=f"Cosmetic roles on {context.guild.name}", description=f'Users should only have *one* color role selected.\
+            \nOnly the highest role will be used to display color.\nUse {context.prefix}assign `role name` to add the role.', color=0x000000)
+        for role in self._fetch_category_roles(context, COSMETIC_CATEGORY_NAME):
+            embed.add_field(
+                name=f"{role.name}", value=f"{role.mention}", inline=False)
+
+        embed.set_footer(
+            text=f'Use {context.prefix}assign to join a role or {context.prefix}help for more information')
+
+        return embed
 
     async def _build_group_reaction_embed(self, context):
         # needs to build the message embed for the available groups to join
