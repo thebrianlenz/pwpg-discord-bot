@@ -24,7 +24,8 @@ initial_modules = [
     'cogs.TimeManager',
     'cogs.StatsManager',
     'cogs.Reflector',
-    'cogs.Extras'
+    'cogs.Extras',
+    'cogs.Quoter'
 ]
 
 
@@ -32,7 +33,11 @@ initial_modules = [
 async def on_command_error(context, error):
 
     if hasattr(context, 'error_being_handled') and context.error_being_handled:
+        print('Error was handled locally.')
         return
+
+    print('Main pwpg-bot error handler...')
+
     if isinstance(error, commands.CommandNotFound):
         print(error)
         return
