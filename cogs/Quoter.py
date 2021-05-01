@@ -5,6 +5,7 @@ from discord.ext.commands import Bot
 
 import aiosqlite
 from datetime import datetime
+import random
 
 QUOTE_DB_PATH = "data/quotes.db"
 
@@ -83,7 +84,6 @@ class Quoter(commands.Cog, name='Quoter'):
                 cursor = await quotes_db.execute(query, payload)
                 results = await cursor.fetchall()
                 print('Quotes fetched')
-                print(results)
             except Exception as error:
                 print(error)
         message = "```"
@@ -91,6 +91,39 @@ class Quoter(commands.Cog, name='Quoter'):
             message += f'\"{q[3]}\"\n\t - {self.bot.get_user(q[0]).display_name}\t{q[4]}\n\n'
         message += '```'
 
+        await context.send(message)
+
+    @commands.command(name='random-quote',
+                      brief='Fetch and print a random quote',
+                      description='Fetches a random quote from the active guild.',
+                      pass_context=True)
+    async def command_random_quote(self, context):
+        payload = {'guild_id': context.guild.id}
+
+        query = """SELECT
+                    quoted_user,
+                    invoking_user,
+                    quoted_content,
+                    timestamp
+                FROM quotes
+                WHERE guild_id=(:guild_id)"""
+
+        async with aiosqlite.connect(QUOTE_DB_PATH) as quotes_db:
+            print('Connecting to quote database...')
+            try:
+                cursor = await quotes_db.execute(query, payload)
+                results = await cursor.fetchall()
+                print('Quotes fetched')
+            except Exception as error:
+                print(error)
+
+        q = random.choice(results)
+
+        # Formats as:
+        # "QUOTED_CONTENT"
+        #       - QUOTED_USER TIMESTAMP
+        # Recorded by: INVOKING_USER
+        message = f'```\"{q[2]}\"\n\t- {self.bot.get_user(q[0]).display_name}\t{q[3]}\n\nRecorded by: {self.bot.get_user(q[1]).display_name}```'
         await context.send(message)
 
 
