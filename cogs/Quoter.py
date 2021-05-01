@@ -38,7 +38,6 @@ class Quoter(commands.Cog, name='Quoter'):
             'quoted_content': quote,
             'timestamp': datetime.now().strftime("%B %d, %Y")
         }
-        print(quoted_user)
 
         async with aiosqlite.connect(QUOTE_DB_PATH) as quotes_db:
             print('Connecting to quote database...')
