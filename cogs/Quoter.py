@@ -35,7 +35,7 @@ class Quoter(commands.Cog, name='Quoter'):
             'quoted_user': quoted_user.id,
             'message_id': context.message.id,
             'quoted_content': quote,
-            'timestamp': context.message.created_at.isoformat()
+            'timestamp': datetime.now().strftime("%B %d, %Y")
         }
         print(quoted_user)
 
@@ -57,6 +57,41 @@ class Quoter(commands.Cog, name='Quoter'):
             await context.send("Could not find that user. Either ensure the user was spelled correctly, or just mention them.")
             return
         setattr(context, 'error_being_handled', False)
+
+    @commands.command(name='my-quotes',
+                      brief='Fetch quotes you have said.',
+                      description='Fetches the quotes attributed to the invoking user.',
+                      pass_context=True)
+    async def command_my_quotes(self, context):
+
+        payload = {'guild_id': context.guild.id,
+                   'quoted_user': context.author.id}
+
+        query = """SELECT
+                        quoted_user,
+                        invoking_user,
+                        message_id,
+                        quoted_content,
+                        timestamp
+                    FROM quotes
+                    WHERE guild_id=(:guild_id) AND
+                    quoted_user=(:quoted_user)"""
+
+        async with aiosqlite.connect(QUOTE_DB_PATH) as quotes_db:
+            print('Connecting to quote database...')
+            try:
+                cursor = await quotes_db.execute(query, payload)
+                results = await cursor.fetchall()
+                print('Quotes fetched')
+                print(results)
+            except Exception as error:
+                print(error)
+        message = "```"
+        for q in results:
+            message += f'\"{q[3]}\"\n\t - {self.bot.get_user(q[0]).display_name}\t{q[4]}\n\n'
+        message += '```'
+
+        await context.send(message)
 
 
 def setup(bot):
