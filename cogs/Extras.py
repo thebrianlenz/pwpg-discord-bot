@@ -12,6 +12,15 @@ class Extras(commands.Cog, name='Extras'):
         self.bot = bot
         self.channel_chatters = {}
 
+    @commands.command(name='no',
+                      brief='No',
+                      description='No',
+                      hidden=True,
+                      pass_context=True)
+    async def command_no(self, context):
+        await context.send(file=discord.File('data/isildur_no.gif'))
+        print("No sent")
+
     @commands.Cog.listener()
     async def on_typing(self, channel, user, when):
         print(f'saw {user} typing in {channel} at {when}')
