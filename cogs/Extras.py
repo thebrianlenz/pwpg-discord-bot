@@ -22,6 +22,17 @@ class Extras(commands.Cog, name='Extras'):
         print("No sent")
 
     @commands.Cog.listener()
+    async def on_raw_reaction_add(self, payload):
+        if (payload.emoji.name == '🧽'):
+            channel = await self.bot.fetch_channel(payload.channel_id)
+            message = await channel.fetch_message(payload.message_id)
+            await message.clear_reaction('🧽')
+
+            message_content = "".join(w.upper() if i % 2 else w.lower()
+                                      for i, w in enumerate(message.clean_content))
+            await channel.send(message_content)
+
+    @commands.Cog.listener()
     async def on_typing(self, channel, user, when):
         print(f'saw {user} typing in {channel} at {when}')
         self.chatter_expiration_check(when)
